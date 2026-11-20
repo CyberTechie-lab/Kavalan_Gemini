@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-16 14:06:23 UTC",
+  "run_id": "host-docker-internal-8080_f35f",
+  "run_name": "host-docker-internal-8080_f35f",
+  "scope": {
+    "targets": [
+      {
+        "type": "web_application",
+        "details": {
+          "target_url": "http://host.docker.internal:8080"
+        },
+        "original": "http://host.docker.internal:8080"
+      }
+    ],
+    "scan_mode": "deep",
+    "scope_mode": "auto",
+    "diff_scope": {
+      "active": false,
+      "mode": "auto"
+    },
+    "instruction": ""
+  },
+  "summary": {
+    "surfaces_reviewed": 3,
+    "outcomes": {
+      "no_issue_found": 3
+    },
+    "findings_filed": 0,
+    "gaps": 15
+  },
+  "machine_observed": {
+    "agents": [
+      {
+        "agent_id": "4bfaef31",
+        "agent_name": "Access Control Specialist",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/idor",
+          "vulnerabilities/broken_function_level_authorization"
+        ],
+        "task": "Test for access control vulnerabilities in http://host.docker.internal:8080.\n\nObjectives:\n1. Identify endpoints that use object identifiers (e.g., /rest/user/id) and test for IDOR.\n2. Search for administrative endpoints (e.g., /administration) and test for BFLA (unauthenticated or low-priv access).\n3. Test for vertical privilege escalation (User -> Admin).\n4. Document trust boundaries for each identified endpoint.\n\nCall get_threat_model before starting. Record coverage for all tested surfaces.",
+        "is_root": false
+      },
+      {
+        "agent_id": "11e335ce",
+        "agent_name": "Auth Specialist",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/authentication_jwt",
+          "vulnerabilities/weak_password_detection",
+          "vulnerabilities/business_logic"
+        ],
+        "task": "Test the authentication and session management of http://host.docker.internal:8080.\n\nObjectives:\n1. Test the login and registration flows for bypasses (e.g., SQLi in login, weak password requirements).\n2. Analyze the session management (cookies vs JWT). If JWTs are used, test for algorithm confusion, weak secrets, or missing signature verification.\n3. Test for account enumeration via registration or password reset flows.\n4. Attempt to bypass MFA or other security controls if present.\n\nCall get_threat_model before starting. Record coverage for all tested endpoints.",
+        "is_root": false
+      },
+      {
+        "agent_id": "3cc45b90",
+        "agent_name": "Business Logic Specialist",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/business_logic",
+          "vulnerabilities/race_conditions"
+        ],
+        "task": "Test for business logic flaws in http://host.docker.internal:8080.\n\nObjectives:\n1. Analyze the shopping cart and checkout flow.\n2. Test for price/quantity manipulation in the basket.\n3. Test for race conditions in order processing or balance updates.\n4. Explore the order history and modification flows for logic errors.\n\nCall get_threat_model before starting. Record coverage for all tested surfaces.",
+        "is_root": false
+      },
+      {
+        "agent_id": "648dc254",
+        "agent_name": "File Ops Specialist",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/insecure_file_uploads",
+          "vulnerabilities/path_traversal_lfi_rfi"
+        ],
+        "task": "Test for file-related vulnerabilities in http://host.docker.internal:8080.\n\nObjectives:\n1. Find all file upload points (e.g., profile picture, support tickets).\n2. Test for unrestricted file upload (webshells, malicious extensions).\n3. Test for path traversal in file download or upload parameters.\n4. Check for XXE if any XML files are uploaded or parsed.\n\nCall get_threat_model before starting. Record coverage for all tested surfaces.",
+        "is_root": false
+      },
+      {
+        "agent_id": "06f5d640",
+        "agent_name": "Injection Specialist",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/sql_injection",
+          "vulnerabilities/xss",
+          "vulnerabilities/nosql_injection"
+        ],
+        "task": "Test for injection vulnerabilities in http://host.docker.internal:8080.\n\nObjectives:\n1. Test the search bar and other input fields for Reflected and Stored XSS.\n2. Test the login form and other parameters for SQL Injection and NoSQL Injection.\n3. Identify and test any other parameters that interact with the database.\n4. Use payload sprays via Python scripts for efficiency.\n\nCall get_threat_model before starting. Record coverage for all tested surfaces.",
+        "is_root": false
+      },
+      {
+        "agent_id": "1fde9882",
+        "agent_name": "Recon Specialist",
+        "status": "completed",
+        "skills": [
+          "reconnaissance/asset_discovery",
+          "tooling/httpx",
+          "tooling/katana",
+          "tooling/nuclei"
+        ],
+        "task": "Perform comprehensive reconnaissance and attack surface mapping for the target: http://host.docker.internal:8080. \n\nObjectives:\n1. Probe the target to confirm it is alive and identify the technology stack (frameworks, server, etc.).\n2. Crawl the application thoroughly to discover all endpoints, parameters, APIs, and hidden paths.\n3. Identify all available user roles and authentication mechanisms.\n4. Document the discovered surface in a shared note for subsequent vulnerability testing agents.\n5. Record coverage for all surfaces explored.\n\nThe target is http://host.docker.internal:8080. Please use a dedicated browser session for any interactive crawling.",
+        "is_root": false
+      },
+      {
+        "agent_id": "f1f03f79",
+        "agent_name": "Root Agent",
+        "status": "running",
+        "skills": [],
+        "task": "\n\nURLs: - http://host.docker.internal:8080",
+        "is_root": true
+      }
+    ],
+    "skills_exercised": [
+      "asset_discovery",
+      "authentication_jwt",
+      "broken_function_level_authorization",
+      "business_logic",
+      "httpx",
+      "idor",
+      "insecure_file_uploads",
+      "katana",
+      "nosql_injection",
+      "nuclei",
+      "path_traversal_lfi_rfi",
+      "race_conditions",
+      "sql_injection",
+      "weak_password_detection",
+      "xss"
+    ],
+    "findings_filed": 0,
+    "source": "runtime"
+  },
+  "completeness": {
+    "complete": false,
+    "scan_status": "interrupted",
+    "exit_reason": "user_exit",
+    "caveats": [
+      "The scan ended with status 'interrupted' rather than completing, so coverage reflects only the work finished before it stopped.",
+      "6 agent(s) did not finish cleanly (Access Control Specialist, Auth Specialist, Business Logic Specialist, File Ops Specialist, Injection Specialist, Root Agent); any surface they held is under-covered.",
+      "The run terminated via 'user_exit' rather than the root agent finishing, so remaining scope was not reached."
+    ]
+  },
+  "entries": [
+    {
+      "surface": "http://host.docker.internal:8080",
+      "risk_area": "Technology Stack Identification",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Confirmed target is alive and identified as OWASP Juice Shop running on nginx/1.27.5.",
+      "recorded_by": "Recon Specialist",
+      "recorded_at": "2026-10-16 13:51:10 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "http://host.docker.internal:8080/routes",
+      "risk_area": "Attack Surface Mapping",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Crawled using katana and agent-browser; identified main routes (/contact, /about, /login, /register, /jobs).",
+      "recorded_by": "Recon Specialist",
+      "recorded_at": "2026-10-16 13:51:13 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "http://host.docker.internal:8080/auth",
+      "risk_area": "Authentication Mechanism Analysis",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Identified email/password based authentication and registration flow via browser exploration.",
+      "recorded_by": "Recon Specialist",
+      "recorded_at": "2026-10-16 13:51:16 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "broken function level authorization",
+      "detail": "Agent(s) Access Control Specialist were assigned the 'broken_function_level_authorization' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "business logic",
+      "detail": "Agent(s) Auth Specialist, Business Logic Specialist were assigned the 'business_logic' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "idor",
+      "detail": "Agent(s) Access Control Specialist were assigned the 'idor' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "insecure file uploads",
+      "detail": "Agent(s) File Ops Specialist were assigned the 'insecure_file_uploads' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "nosql injection",
+      "detail": "Agent(s) Injection Specialist were assigned the 'nosql_injection' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "path traversal lfi rfi",
+      "detail": "Agent(s) File Ops Specialist were assigned the 'path_traversal_lfi_rfi' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "race conditions",
+      "detail": "Agent(s) Business Logic Specialist were assigned the 'race_conditions' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "sql injection",
+      "detail": "Agent(s) Injection Specialist were assigned the 'sql_injection' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "weak password detection",
+      "detail": "Agent(s) Auth Specialist were assigned the 'weak_password_detection' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "xss",
+      "detail": "Agent(s) Injection Specialist were assigned the 'xss' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "Access Control Specialist",
+      "detail": "Access Control Specialist ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "Auth Specialist",
+      "detail": "Auth Specialist ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "Business Logic Specialist",
+      "detail": "Business Logic Specialist ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "File Ops Specialist",
+      "detail": "File Ops Specialist ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "Injection Specialist",
+      "detail": "Injection Specialist ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    }
+  ]
+}

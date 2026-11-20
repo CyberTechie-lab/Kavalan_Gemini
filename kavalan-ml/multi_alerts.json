@@ -1,0 +1,80 @@
+{
+ "sources": [
+  {
+   "ip": "203.0.113.66",
+   "level": "CRITICAL",
+   "cross_source": true,
+   "channels": [
+    "web",
+    "ssh"
+   ],
+   "web_score": 76,
+   "ssh_score": 79,
+   "tactics": {
+    "recon_files": 74,
+    "protected_resource_probing": 34,
+    "path_guessing": 32,
+    "command_injection": 39,
+    "path_traversal": 30,
+    "ssrf": 25,
+    "credential_guessing": 8,
+    "ssh_credential_guessing": 55,
+    "ssh_login_success": 1
+   },
+   "reasons": [
+    "170 requests in its busiest 10 seconds",
+    "300 requests across 80 distinct paths",
+    "6 tactics: command_injection, path_guessing, path_traversal, protected_resource_probing, recon_files, ssrf",
+    "300 requests in a 17-second lifetime",
+    "81% of responses were refusals or errors",
+    "107 hits on protected paths",
+    "55 failed SSH logins",
+    "48 failed attempts in a 60-second burst",
+    "10 distinct usernames tried (enumeration)",
+    "SUCCESSFUL login after 55 failures - account(s): msfadmin"
+   ]
+  },
+  {
+   "ip": "198.51.100.23",
+   "level": "HIGH",
+   "cross_source": false,
+   "channels": [
+    "web"
+   ],
+   "web_score": 87,
+   "ssh_score": 0,
+   "tactics": {
+    "recon_files": 260,
+    "path_guessing": 79,
+    "protected_resource_probing": 38
+   },
+   "reasons": [
+    "61 requests in its busiest 10 seconds",
+    "400 requests across 389 distinct paths",
+    "3 tactics: path_guessing, protected_resource_probing, recon_files",
+    "400 requests in a 69-second lifetime",
+    "100% of responses were refusals or errors",
+    "92 hits on protected paths"
+   ]
+  },
+  {
+   "ip": "198.51.100.99",
+   "level": "MEDIUM",
+   "cross_source": false,
+   "channels": [
+    "ssh"
+   ],
+   "web_score": 0,
+   "ssh_score": 50,
+   "tactics": {
+    "ssh_credential_guessing": 70
+   },
+   "reasons": [
+    "70 failed SSH logins",
+    "70 failed attempts in a 60-second burst",
+    "10 distinct usernames tried (enumeration)"
+   ]
+  }
+ ],
+ "web_campaigns": []
+}

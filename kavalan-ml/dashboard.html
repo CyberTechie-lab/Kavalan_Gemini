@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kavalan Monitor</title>
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141922; --panel2:#1b2230; --line:#232c3b;
+    --ink:#e6edf3; --dim:#8b97a7; --faint:#5b6677;
+    --crit:#ff5c6c; --high:#ff9f43; --med:#ffd34e; --ok:#35d07f; --accent:#4aa8ff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme=dark]){
+      --bg:#f3f5f8; --panel:#ffffff; --panel2:#f6f8fb; --line:#e2e7ee;
+      --ink:#141a22; --dim:#5a6676; --faint:#8a95a5;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+       font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 56px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+         padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .logo{font-weight:700;font-size:20px;letter-spacing:.3px}
+  .logo b{color:var(--accent)}
+  .tag{color:var(--dim);font-size:13px}
+  .status{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(53,208,127,.18)}
+  .dot.stale{background:var(--high);box-shadow:0 0 0 3px rgba(255,159,67,.18)}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  @media(max-width:720px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .tile .k{color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  .tile .v{font-size:28px;font-weight:650;margin-top:6px;font-variant-numeric:tabular-nums}
+  .tile .v small{font-size:14px;color:var(--faint);font-weight:500}
+  .sev{display:flex;gap:14px;margin-top:8px}
+  .sev span{font-size:13px;font-variant-numeric:tabular-nums}
+  .sev .c{color:var(--crit)} .sev .h{color:var(--high)} .sev .m{color:var(--med)}
+
+  .banner{background:linear-gradient(180deg,rgba(255,92,108,.14),rgba(255,92,108,.05));
+          border:1px solid rgba(255,92,108,.5);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+  .banner h2{margin:0 0 8px;font-size:16px;color:var(--crit);display:flex;align-items:center;gap:8px}
+  .banner .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 24px;
+                font-size:13px;color:var(--dim)}
+  .banner .meta b{color:var(--ink);font-weight:600}
+  .banner .urgent{margin-top:10px;font-size:13px;color:var(--high)}
+
+  h3.section{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);
+             margin:0 0 10px;font-weight:600}
+  .alert{background:var(--panel);border:1px solid var(--line);border-left-width:3px;border-radius:10px;
+         padding:12px 14px;margin-bottom:10px}
+  .alert.CRITICAL{border-left-color:var(--crit)}
+  .alert.HIGH{border-left-color:var(--high)}
+  .alert.MEDIUM{border-left-color:var(--med)}
+  .alert .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:999px}
+  .badge.CRITICAL{background:rgba(255,92,108,.16);color:var(--crit)}
+  .badge.HIGH{background:rgba(255,159,67,.16);color:var(--high)}
+  .badge.MEDIUM{background:rgba(255,211,78,.16);color:var(--med)}
+  .alert .src{font-family:var(--mono);font-size:13px}
+  .alert .ty{color:var(--dim);font-size:13px}
+  .alert .score{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .alert ul{margin:8px 0 0;padding-left:18px;color:var(--dim);font-size:13px}
+  .alert ul li{margin:1px 0}
+  .empty{color:var(--faint);font-size:14px;padding:22px;text-align:center;
+         border:1px dashed var(--line);border-radius:10px}
+  table.src{width:100%;border-collapse:collapse;background:var(--panel);
+            border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px}
+  table.src th{text-align:left;color:var(--dim);font-weight:600;font-size:11px;
+               text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;border-bottom:1px solid var(--line)}
+  table.src td{padding:9px 12px;border-bottom:1px solid var(--line)}
+  table.src tr:last-child td{border-bottom:none}
+  table.src td.ip{font-family:var(--mono)}
+  table.src td.num{font-variant-numeric:tabular-nums;text-align:right}
+  .pill{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:999px}
+  .pill.CRITICAL{background:rgba(255,92,108,.16);color:var(--crit)}
+  .pill.HIGH{background:rgba(255,159,67,.16);color:var(--high)}
+  .pill.MEDIUM{background:rgba(255,211,78,.16);color:var(--med)}
+  .pill.OK{background:rgba(53,208,127,.14);color:var(--ok)}
+  footer{margin-top:28px;color:var(--faint);font-size:12px;text-align:center}
+  .mono{font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><b>Kavalan</b> Monitor</div>
+    <div class="tag">AI-agent attack monitor &middot; standalone</div>
+    <div class="status"><span class="dot" id="dot"></span><span id="status">connecting…</span></div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">Requests in window</div><div class="v" id="t-req">–</div></div>
+    <div class="tile"><div class="k">Active sources</div><div class="v" id="t-src">–</div></div>
+    <div class="tile"><div class="k">Active alerts</div><div class="v" id="t-al">–</div>
+      <div class="sev"><span class="c" id="t-c">0 crit</span><span class="h" id="t-h">0 high</span><span class="m" id="t-m">0 med</span></div>
+    </div>
+    <div class="tile"><div class="k">Total seen</div><div class="v" id="t-tot">–</div></div>
+  </div>
+
+  <div id="banner"></div>
+
+  <h3 class="section">Alerts</h3>
+  <div id="alerts"><div class="empty">Waiting for the first scan…</div></div>
+
+  <h3 class="section" style="margin-top:24px">Sources</h3>
+  <div id="sources"><div class="empty">No active sources yet.</div></div>
+
+  <footer>
+    Watching <span class="mono" id="logpath">–</span> &middot; window <span id="win">–</span> min &middot;
+    model <span id="model">–</span> &middot; last scan <span id="last">–</span> &middot; uptime <span id="up">–</span>
+    <br>Runs fully offline on this machine. No data leaves the host.
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function fmtUptime(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${m}m`:`${m}m`;}
+
+function render(d){
+  $('dot').className = 'dot' + (d.last_scan ? '' : ' stale');
+  $('status').textContent = d.last_scan ? 'live' : 'starting';
+  $('t-req').textContent = d.requests_in_window ?? '–';
+  $('t-src').textContent = d.sources_in_window ?? '–';
+  const c = d.counts || {};
+  const total = (c.CRITICAL||0)+(c.HIGH||0)+(c.MEDIUM||0);
+  $('t-al').textContent = total;
+  $('t-c').textContent = (c.CRITICAL||0)+' crit';
+  $('t-h').textContent = (c.HIGH||0)+' high';
+  $('t-m').textContent = (c.MEDIUM||0)+' med';
+  $('t-tot').textContent = (d.total_requests_seen ?? 0).toLocaleString();
+  $('logpath').textContent = d.log_path || '–';
+  $('win').textContent = d.window_minutes ?? '–';
+  $('model').textContent = d.model ? 'on' : 'off';
+  $('last').textContent = d.last_scan ? d.last_scan.replace('T',' ').replace('+00:00','Z') : '–';
+  $('up').textContent = fmtUptime(d.uptime_seconds||0);
+
+  const alerts = d.alerts || [];
+  const camp = alerts.find(a => a.type === 'agent_campaign');
+  const banner = $('banner');
+  if(camp){
+    const tac = Object.entries(camp.tactics||{}).map(([t,n])=>`${t} (${n})`).join(', ');
+    const ok = (camp.possible_success||[]).length;
+    banner.innerHTML = `<div class="banner"><h2>&#9888; ${esc(camp.summary)}</h2>
+      <div class="meta">
+        <div>Window <b>${esc(camp.start)}–${esc(camp.end)}</b></div>
+        <div>Sources <b>${(camp.sources||[]).length}</b></div>
+        <div>Top target <b class="mono">${esc(camp.top_target||'–')}</b></div>
+        <div>Busiest single source <b>${camp.largest_single_source_requests||0} reqs</b></div>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:var(--dim)">Tactics: ${esc(tac)}</div>
+      ${ok?`<div class="urgent">&#9888; ${ok} request(s) to protected paths returned success — verify now.</div>`:''}
+    </div>`;
+  } else { banner.innerHTML = ''; }
+
+  const box = $('alerts');
+  // campaign members are summarised by the banner, not listed one by one
+  const rows = alerts.filter(a => a.type !== 'agent_campaign' && !a.part_of_campaign);
+  const grouped = alerts.filter(a => a.type !== 'agent_campaign' && a.part_of_campaign).length;
+  const note = grouped ? `<div class="empty" style="padding:12px;margin-bottom:10px">${grouped} source alerts belong to the campaign above.</div>` : '';
+  if(!alerts.length){ box.innerHTML = '<div class="empty">No alerts. Traffic looks normal.</div>'; return; }
+  if(!rows.length){ box.innerHTML = note || '<div class="empty">No standalone alerts.</div>'; return; }
+  box.innerHTML = note + rows.map(a=>{
+    const reasons = (a.reasons||[]).map(r=>`<li>${esc(r)}</li>`).join('');
+    const src = a.ip ? `<span class="src">${esc(a.ip)}</span>` : '';
+    const score = (a.score!=null)?`<span class="score">score ${a.score}</span>`:'';
+    return `<div class="alert ${esc(a.level)}"><div class="top">
+      <span class="badge ${esc(a.level)}">${esc(a.level)}</span>${src}
+      <span class="ty">${esc(a.type.replace(/_/g,' '))}</span>${score}</div>
+      ${reasons?`<ul>${reasons}</ul>`:''}</div>`;
+  }).join('');
+}
+
+function renderSources(sources){
+  const box = $('sources');
+  if(!sources || !sources.length){ box.innerHTML = '<div class="empty">No active sources yet.</div>'; return; }
+  const rows = sources.map(s=>`<tr>
+    <td class="ip">${esc(s.ip)}</td>
+    <td class="num">${(s.requests||0).toLocaleString()}</td>
+    <td class="num">${s.peak10||0}</td>
+    <td class="num">${(s.paths||0).toLocaleString()}</td>
+    <td>${esc((s.top_tactic||'-').replace(/_/g,' '))}</td>
+    <td class="num">${(s.sensitive||0).toLocaleString()}</td>
+    <td class="num">${s.score}</td>
+    <td><span class="pill ${esc(s.level)}">${esc(s.level)}</span></td>
+  </tr>`).join('');
+  box.innerHTML = `<table class="src"><thead><tr>
+    <th>Source</th><th style="text-align:right">Requests</th><th style="text-align:right">Peak/10s</th>
+    <th style="text-align:right">Paths</th><th>Top tactic</th><th style="text-align:right">Protected</th>
+    <th style="text-align:right">Score</th><th>Severity</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function tick(){
+  try{ const r = await fetch('/api/state',{cache:'no-store'}); const d = await r.json(); render(d); renderSources(d.sources); }
+  catch(e){ $('status').textContent='disconnected'; $('dot').className='dot stale'; }
+}
+tick(); setInterval(tick, 3000);
+</script>
+</body>
+</html>

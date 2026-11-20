@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "bmad-epics-and-stories": {
+      "source": "aj-geddes/claude-code-bmad-skills",
+      "sourceType": "github",
+      "skillPath": "bmad-planning-orchestrator/skills/bmad-epics-and-stories/SKILL.md",
+      "computedHash": "d16254fb43ad25ca956b201bc38dad65d09928e5a5756b5e9da964344a4e29dc"
+    },
+    "bmad-prd": {
+      "source": "aj-geddes/claude-code-bmad-skills",
+      "sourceType": "github",
+      "skillPath": "bmad-planning-orchestrator/skills/bmad-prd/SKILL.md",
+      "computedHash": "47e0565a7fbd82cc1b177a914e93be6b00ed00892e028e3f73b54faee2376bb0"
+    },
+    "bmad-prfaq": {
+      "source": "aj-geddes/claude-code-bmad-skills",
+      "sourceType": "github",
+      "skillPath": "bmad-planning-orchestrator/skills/bmad-prfaq/SKILL.md",
+      "computedHash": "5d244967d08823d595186dca4436d36a20008aa4ddc45722ac9d8b152f544cf7"
+    },
+    "bmad-product-brief": {
+      "source": "aj-geddes/claude-code-bmad-skills",
+      "sourceType": "github",
+      "skillPath": "bmad-planning-orchestrator/skills/bmad-product-brief/SKILL.md",
+      "computedHash": "c65826a2cfd8160d8505be8aa087e32731ff997c9141c675f8a5c4690f2a6c58"
+    },
+    "competitor-analysis": {
+      "source": "aaron-he-zhu/aaron-marketing-skills",
+      "sourceType": "github",
+      "skillPath": "seo-geo/survey/competitor-analysis/SKILL.md",
+      "computedHash": "2aa20490cc85d79bbe6ed986477ffbf46cd8b9799de15e6cdb4e51e5e68d9d0b"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "reverse-engineer-anything": {
+      "source": "morluto/rea",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/reverse-engineer-anything/SKILL.md",
+      "computedHash": "aced34135257d1e96789a14d4993076c9b6c550a4bbf8adb202668a8c7f05bdd"
+    },
+    "senior-backend": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/senior-backend/SKILL.md",
+      "computedHash": "651c394eafe0d6ffe634301607313773c6407cf0720e7fadb208616cc49b271c"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "411316b5893571bda59f1517b1fd639682cbbc26f8c804c08a071f2b7b864992"
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "run_id": "host-docker-internal-8080_ecdb",
+  "run_name": "host-docker-internal-8080_ecdb",
+  "start_time": "2026-10-19T16:26:07.322511+00:00",
+  "end_time": "2026-10-19T16:31:18.319818+00:00",
+  "status": "interrupted",
+  "auth_mode": "api_key",
+  "targets_info": [
+    {
+      "type": "web_application",
+      "details": {
+        "target_url": "http://host.docker.internal:8080"
+      },
+      "original": "http://host.docker.internal:8080"
+    }
+  ],
+  "llm_usage": {
+    "requests": 2,
+    "input_tokens": 4100,
+    "input_tokens_details": [
+      {
+        "cache_write_tokens": 0,
+        "cached_tokens": 2053
+      }
+    ],
+    "output_tokens": 667,
+    "output_tokens_details": [
+      {
+        "reasoning_tokens": 0
+      }
+    ],
+    "total_tokens": 4767,
+    "request_usage_entries": [
+      {
+        "input_tokens": 2050,
+        "output_tokens": 65,
+        "total_tokens": 2115,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 2049
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      {
+        "input_tokens": 2050,
+        "output_tokens": 602,
+        "total_tokens": 2652,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 4
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    ],
+    "cost": 0.0,
+    "providers": {},
+    "agents": [
+      {
+        "requests": 2,
+        "input_tokens": 4100,
+        "input_tokens_details": [
+          {
+            "cache_write_tokens": 0,
+            "cached_tokens": 2053
+          }
+        ],
+        "output_tokens": 667,
+        "output_tokens_details": [
+          {
+            "reasoning_tokens": 0
+          }
+        ],
+        "total_tokens": 4767,
+        "request_usage_entries": [
+          {
+            "input_tokens": 2050,
+            "output_tokens": 65,
+            "total_tokens": 2115,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 2049
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          },
+          {
+            "input_tokens": 2050,
+            "output_tokens": 602,
+            "total_tokens": 2652,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 4
+            },
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            }
+          }
+        ],
+        "agent_id": "87d5cfc6",
+        "agent_name": "Root Agent",
+        "model": "openai/qwen2.5:7b",
+        "cost": 0.0
+      }
+    ]
+  },
+  "scan_mode": "deep",
+  "instruction": "",
+  "user_instruction": null,
+  "non_interactive": true,
+  "local_sources": [],
+  "workspace_files": [],
+  "workspace_mount": null,
+  "diff_scope": {
+    "active": false,
+    "mode": "auto"
+  },
+  "scope_mode": "auto",
+  "diff_base": null
+}
