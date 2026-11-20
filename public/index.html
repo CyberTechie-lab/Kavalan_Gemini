@@ -678,12 +678,14 @@
   }
 
   /* ====================================================================
-     TOP HEADER BAR (Clean Single-Line Enterprise Control Bar)
+     TOP HEADER BAR (Enterprise SOC Header & Control Suite)
      ==================================================================== */
   .top-header {
-    height: 54px;
+    height: 56px;
     padding: 0 24px;
-    background: var(--surface);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -691,7 +693,7 @@
     gap: 16px;
     position: sticky;
     top: 0;
-    z-index: 99;
+    z-index: 1000;
   }
   .top-header-left {
     display: flex;
@@ -704,9 +706,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    background: transparent;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border);
     color: var(--text-secondary);
     border-radius: var(--radius-md);
@@ -723,7 +725,7 @@
   .breadcrumb-trail {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
@@ -731,7 +733,14 @@
   }
   .crumb-root {
     color: var(--text-tertiary);
-    font-weight: 500;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .crumb-root .crumb-icon {
+    color: var(--accent);
+    opacity: 0.9;
   }
   .crumb-sep {
     color: var(--text-faint);
@@ -742,8 +751,19 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
+  .crumb-env-tag {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 4px;
+    padding: 1px 5px;
+    text-transform: uppercase;
+  }
 
-  /* Streamlined Telemetry Readout (no pill enclosure) */
+  /* Unified Telemetry Engine Capsule */
   .top-header-center {
     display: flex;
     align-items: center;
@@ -756,11 +776,16 @@
     font-size: 11px;
     color: var(--text-tertiary);
     white-space: nowrap;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   .capsule-step {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
   }
   .capsule-label {
     font-weight: 600;
@@ -778,11 +803,33 @@
     background: var(--border);
   }
   .pipe-dot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--ok);
     flex-shrink: 0;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    50% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+  }
+  .pipe-dot.pulse {
+    animation: pulseGlow 2.4s infinite ease-in-out;
+  }
+  .capsule-icon-zap {
+    color: var(--accent);
+    opacity: 0.85;
+  }
+  .capsule-status-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ok);
+    background: rgba(16, 185, 129, 0.12);
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid rgba(16, 185, 129, 0.25);
   }
 
   .top-header-right {
@@ -791,21 +838,9 @@
     gap: 8px;
     flex-shrink: 0;
   }
-  .header-ctrl-select {
-    height: 30px;
-    background: var(--surface-subtle);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 0 8px;
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
   .btn-header-tool {
-    height: 30px;
-    background: transparent;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border);
     color: var(--text-secondary);
     padding: 0 10px;
@@ -815,7 +850,7 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     white-space: nowrap;
     flex-shrink: 0;
     transition: all 0.15s ease;
@@ -825,18 +860,44 @@
     border-color: var(--border-strong);
     color: var(--text-primary);
   }
-
-  .live-pill {
-    height: 30px;
+  .btn-redteam {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #c084fc;
+  }
+  .btn-redteam:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: #a855f7;
+    color: #f3e8ff;
+  }
+  .shortcut-k-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--mono);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+
+  .live-pill {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     font-size: 11.5px;
     font-weight: 500;
     color: var(--text-secondary);
-    background: var(--surface-subtle);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border);
-    padding: 0 10px;
+    padding: 0 11px;
     border-radius: var(--radius-md);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -853,37 +914,274 @@
     background: var(--high);
   }
 
-  .user-session-pill {
-    height: 30px;
+  /* Modern Enterprise User Profile Dropdown Widget */
+  .user-profile-wrapper {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    background: var(--surface-subtle);
+  }
+  .user-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 2px 10px 2px 3px;
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 0 4px 0 9px;
+    border-radius: 18px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+  .user-profile-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-strong);
+  }
+  .user-profile-btn[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent);
+  }
+  .user-avatar-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+    color: #ffffff;
+  }
+  .user-avatar-badge.role-admin,
+  .profile-menu-avatar.role-admin {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+  }
+  .user-avatar-badge.role-engineer,
+  .profile-menu-avatar.role-engineer {
+    background: linear-gradient(135deg, #0284c7, #0d9488);
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+  }
+  .user-avatar-badge.role-analyst,
+  .profile-menu-avatar.role-analyst {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+  .user-meta-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    line-height: 1.15;
+  }
+  .user-display-name {
     font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 115px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-role-tag {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .role-badge-admin { color: #c084fc; }
+  .role-badge-engineer { color: #38bdf8; }
+  .role-badge-analyst { color: #34d399; }
+  .user-chevron-icon {
+    color: var(--text-tertiary);
+    transition: transform 0.2s ease;
+  }
+  .user-profile-btn[aria-expanded="true"] .user-chevron-icon {
+    transform: rotate(180deg);
+    color: var(--text-primary);
+  }
+
+  /* Popover Menu Dropdown */
+  .user-profile-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 290px;
+    background: #0b1120;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    padding: 10px;
+    z-index: 1050;
+    animation: profileMenuPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .user-profile-menu.open {
+    display: block;
+  }
+  @keyframes profileMenuPop {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .profile-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 6px 12px;
+  }
+  .profile-menu-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .profile-menu-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .profile-menu-name {
+    font-size: 13px;
+    font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .btn-logout-pill {
-    height: 22px;
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0 7px;
+  .profile-menu-sub {
     font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: var(--mono);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .profile-menu-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 5px;
+  }
+  .menu-role-pill {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    text-transform: uppercase;
+  }
+  .menu-role-pill.role-engineer {
+    background: rgba(14, 165, 233, 0.15);
+    color: #38bdf8;
+    border-color: rgba(14, 165, 233, 0.3);
+  }
+  .menu-role-pill.role-analyst {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+  .menu-tls-pill {
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+  .profile-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
+  }
+  .profile-menu-section {
+    padding: 6px 4px;
+  }
+  .profile-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  .menu-role-select {
+    width: 100%;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 11.5px;
     font-weight: 600;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.15s ease;
+    outline: none;
+    transition: border-color 0.15s ease;
   }
-  .btn-logout-pill:hover {
-    background: var(--crit-bg);
+  .menu-role-select:focus {
+    border-color: var(--accent);
+  }
+  .profile-menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: all 0.12s ease;
+    cursor: pointer;
+  }
+  .profile-menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+  }
+  .menu-item-badge {
+    margin-left: auto;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-tertiary);
+  }
+  .profile-menu-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
     color: var(--crit);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    margin-top: 2px;
+  }
+  .profile-menu-logout:hover {
+    background: var(--crit-bg);
     border-color: var(--crit-border);
   }
 
@@ -909,11 +1207,21 @@
     pointer-events: none;
   }
 
-  @media (max-width: 1440px) {
+  @media (max-width: 1200px) {
     .top-header-center { display: none !important; }
   }
-  @media (max-width: 1180px) {
-    .top-header .live-pill { display: none; }
+  @media (max-width: 960px) {
+    .top-header .live-pill { display: none !important; }
+  }
+  @media (max-width: 768px) {
+    .top-header { padding: 0 12px; gap: 8px; }
+    .breadcrumb-trail .crumb-root,
+    .breadcrumb-trail .crumb-sep,
+    .breadcrumb-trail .crumb-env-tag { display: none; }
+    .btn-redteam span,
+    #btn-shortcuts .btn-tool-label { display: none; }
+    .user-profile-btn { padding: 2px 6px 2px 2px; }
+    .user-meta-compact { display: none; }
   }
   @media (max-width: 1024px) {
     body.sidebar-autohide .sidebar,
@@ -2350,7 +2658,7 @@
   <!-- MAIN WORKSPACE -->
   <main class="workspace">
     <!-- Top Header Bar -->
-    <header class="top-header">
+    <header class="top-header" role="banner">
       <div class="top-header-left">
         <button class="sidebar-toggle-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation sidebar" title="Toggle navigation sidebar (hover left screen edge to peek)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2360,64 +2668,128 @@
           </svg>
         </button>
         <div class="breadcrumb-trail">
-          <span class="crumb-root">Kavalan Sentinel</span>
+          <span class="crumb-root">
+            <svg class="crumb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Kavalan Sentinel</span>
+          </span>
           <span class="crumb-sep">/</span>
           <span class="crumb-current" id="header-breadcrumb">Security Operations &amp; Alerts</span>
+          <span class="crumb-env-tag" title="Enterprise SOC Production Cluster">PROD</span>
         </div>
       </div>
 
       <div class="top-header-center">
-        <!-- 4-Tier Distributed Pipeline Readout -->
-        <div class="pipeline-capsule">
-          <div class="capsule-step" title="Tier 1: Enrolled Linux/Mac Agents">
-            <span class="pipe-dot"></span>
-            <span class="capsule-label">Agents</span>
-            <span class="capsule-val" id="st-agents">2 registered</span>
+        <!-- Unified Engine & Telemetry Capsule -->
+        <div class="pipeline-capsule" id="header-pipeline-capsule" title="Kavalan Unified Security Telemetry Engine (Port 3000)">
+          <div class="capsule-step" title="Fleet Endpoint Coverage">
+            <span class="pipe-dot pulse"></span>
+            <span class="capsule-label">Fleet</span>
+            <span class="capsule-val" id="st-agents">3 active</span>
           </div>
           <span class="capsule-sep"></span>
-          <div class="capsule-step" title="Tier 2: Central Manager Core">
-            <span class="capsule-label">Manager</span>
-            <span class="capsule-val">:8910</span>
+          <div class="capsule-step" title="Unified SQLite WAL &amp; Real-time Correlation Engine">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="capsule-icon-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="capsule-label">Engine</span>
+            <span class="capsule-val" id="st-indexer">Unified &middot; Port 3000</span>
           </div>
           <span class="capsule-sep"></span>
-          <div class="capsule-step" title="Tier 3: WAL SQLite High-Speed Indexer">
-            <span class="capsule-label">Indexer</span>
-            <span class="capsule-val" id="st-indexer">:8920</span>
-          </div>
-          <span class="capsule-sep"></span>
-          <div class="capsule-step" title="Tier 4: Central SOC Console">
-            <span class="capsule-label">Console</span>
-            <span class="capsule-val">:8900</span>
+          <div class="capsule-step" title="SOC Pipeline Health">
+            <span class="capsule-status-badge">Nominal</span>
           </div>
         </div>
       </div>
 
       <div class="top-header-right">
-        <select id="role-switcher" data-rbac="admin" class="header-ctrl-select" onchange="switchAnalystRole(this.value)" title="Switch SOC Role View">
-          <option value="tier1">View: Tier 1 Triage</option>
-          <option value="tier2">View: Tier 2 Hunt</option>
-          <option value="manager">View: SOC Manager</option>
-        </select>
-        <button class="btn-header-tool tabular" id="btn-tz-toggle" onclick="toggleTimezone()" title="Toggle UTC / Local Timezone">TZ: UTC</button>
-        <button class="btn-header-tool" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">? Keys</button>
-        <div class="live-pill">
+        <!-- Live Fleet Telemetry Stream Badge -->
+        <div class="live-pill" id="live-telemetry-badge" title="Live Fleet Telemetry Stream">
           <span class="dot" id="dot"></span>
           <span id="status">fleet connected</span>
           <span class="sep">&middot;</span>
-          <span id="agents-active-hdr">2 active agents</span>
+          <span id="agents-active-hdr">3 active agents</span>
         </div>
-        <div class="user-session-pill" id="header-user-pill" style="display:none;">
-          <b id="hdr-user-name">-</b>
-          <span class="sidebar-badge" id="hdr-user-role">-</span>
-          <button class="btn-logout-pill" onclick="performLogout()" title="Logout from Kavalan SOC">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Logout</span>
-          </button>
-        </div>
-        <button class="btn-header-tool" data-rbac="engineer,admin" onclick="switchTab('graph')" title="Launch Red Team Adversary Simulation">
+
+        <!-- Red Team Lab Simulation Button -->
+        <button class="btn-header-tool btn-redteam" data-rbac="engineer,admin" onclick="switchTab('graph')" title="Launch Red Team Adversary Simulation">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span>Red Team Lab</span>
         </button>
+
+        <!-- Timezone Toggle -->
+        <button class="btn-header-tool tabular" id="btn-tz-toggle" onclick="toggleTimezone()" title="Toggle UTC / Local Timezone">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="tz-label">TZ: UTC</span>
+        </button>
+
+        <!-- Keyboard Shortcuts Button -->
+        <button class="btn-header-tool" id="btn-shortcuts" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="10" y1="8" x2="10.01" y2="8"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="18" y1="8" x2="18.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="18" y1="12" x2="18.01" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+          <span class="btn-tool-label">Keys</span>
+          <kbd class="shortcut-k-badge">?</kbd>
+        </button>
+
+        <!-- Modern Enterprise User Profile Dropdown Widget -->
+        <div class="user-profile-wrapper" id="header-user-pill" style="display:none;">
+          <button class="user-profile-btn" id="user-profile-btn" onclick="toggleUserProfileMenu(event)" aria-haspopup="true" aria-expanded="false" title="Account &amp; Role Settings">
+            <div class="user-avatar-badge role-admin" id="hdr-user-avatar">AD</div>
+            <div class="user-meta-compact">
+              <span class="user-display-name" id="hdr-user-name">-</span>
+              <span class="user-role-tag role-badge-admin" id="hdr-user-role">-</span>
+            </div>
+            <svg class="user-chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- Dropdown Popover Menu -->
+          <div class="user-profile-menu" id="user-profile-menu">
+            <div class="profile-menu-header">
+              <div class="profile-menu-avatar role-admin" id="hdr-menu-avatar">AD</div>
+              <div class="profile-menu-info">
+                <div class="profile-menu-name" id="hdr-menu-fullname">SOC Operator</div>
+                <div class="profile-menu-sub" id="hdr-menu-username">@user &bull; Session Active</div>
+                <div class="profile-menu-badges">
+                  <span class="menu-role-pill" id="hdr-menu-role-pill">ADMIN</span>
+                  <span class="menu-tls-pill">mTLS Verified</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Role View Perspective Switcher (Admins can view workspace as tier1, tier2, or manager) -->
+            <div class="profile-menu-section" data-rbac="admin">
+              <div class="profile-section-label">Workspace View Perspective</div>
+              <select id="role-switcher" data-rbac="admin" class="menu-role-select" onchange="switchAnalystRole(this.value)" title="Switch SOC Role View">
+                <option value="tier1">View: Tier 1 Triage</option>
+                <option value="tier2">View: Tier 2 Hunt</option>
+                <option value="manager">View: SOC Manager</option>
+              </select>
+            </div>
+
+            <div class="profile-menu-divider"></div>
+
+            <!-- Quick Navigation Items -->
+            <div class="profile-menu-nav">
+              <a href="javascript:void(0)" class="profile-menu-item" onclick="switchTab('rbac'); closeUserProfileMenu();" data-rbac="admin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Role &amp; Access Control</span>
+                <span class="menu-item-badge">Admin</span>
+              </a>
+              <a href="javascript:void(0)" class="profile-menu-item" onclick="switchTab('governance'); closeUserProfileMenu();">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Audit Trail &amp; CERT-In</span>
+              </a>
+              <a href="javascript:void(0)" class="profile-menu-item" onclick="switchTab('sources'); closeUserProfileMenu();">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                <span>Log Ingestion &amp; Agents</span>
+              </a>
+            </div>
+
+            <div class="profile-menu-divider"></div>
+
+            <!-- Logout Action -->
+            <button class="profile-menu-logout" onclick="closeUserProfileMenu(); performLogout();" title="Logout from Kavalan SOC">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Sign Out of Kavalan SOC</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -4355,7 +4727,11 @@ function toggleTimezone() {
   timeZoneMode = timeZoneMode === 'UTC' ? 'LOCAL' : 'UTC';
   try { localStorage.setItem('kavalan_tz_mode', timeZoneMode); } catch(e) {}
   const btn = $('btn-tz-toggle');
-  if (btn) btn.textContent = `TZ: ${timeZoneMode}`;
+  if (btn) {
+    const lbl = btn.querySelector('.tz-label');
+    if (lbl) lbl.textContent = `TZ: ${timeZoneMode}`;
+    else btn.textContent = `TZ: ${timeZoneMode}`;
+  }
   updateClock();
   fetchState();
   if (activeTab === 'search') renderSearchResults(currentSearchHits || []);
@@ -5371,7 +5747,7 @@ async function fetchState(){
     // Headers & KPIs
     $('kpi-agents').innerHTML = `${d.total_agents || 0} <small>${d.active_agents || 0} active</small>`;
     $('agents-active-hdr').textContent = `${d.active_agents || 0} active agents`;
-    $('st-agents').textContent = `${d.total_agents || 0} registered (${d.active_agents || 0} active)`;
+    if ($('st-agents')) $('st-agents').textContent = `${d.active_agents || 0} active (${d.total_agents || 0} enrolled)`;
     
     const counts = d.counts || {};
     const totalThreats = (counts.CRITICAL || 0) + (counts.HIGH || 0) + (counts.MEDIUM || 0);
@@ -5392,7 +5768,7 @@ async function fetchState(){
     if ($('pipe-stat-ram')) {
       $('pipe-stat-ram').textContent = `${rssMb} / ${idx.memory_budget_mb || 150} MB`;
     }
-    $('st-indexer').textContent = `port 8920 (${idx.total_events || 0} events · ${rssMb} MB RSS)`;
+    if ($('st-indexer')) $('st-indexer').textContent = `${(idx.total_events || 0).toLocaleString()} events · ${rssMb} MB RSS`;
 
     // Sidebar status and badges
     const critBadge = $('badge-crit-nav');
@@ -9204,64 +9580,59 @@ document.addEventListener('keydown', e => {
   }
 });
 
-if ($('btn-tz-toggle')) $('btn-tz-toggle').textContent = `TZ: ${timeZoneMode}`;
+if ($('btn-tz-toggle')) {
+  const lbl = $('btn-tz-toggle').querySelector('.tz-label');
+  if (lbl) lbl.textContent = `TZ: ${timeZoneMode}`;
+  else $('btn-tz-toggle').textContent = `TZ: ${timeZoneMode}`;
+}
 if ($('role-switcher')) $('role-switcher').value = currentAnalystRole;
 
-// =========================================================================
-// PHASE 1 SOC BASICS: AUTHENTICATION, RBAC, AUDIT, MTLS, SOURCES & CERT-IN
-// =========================================================================
+function getUserInitials(user) {
+  if (!user) return '??';
+  if (user.display_name) {
+    const parts = user.display_name.replace(/\(.*?\)/g, '').trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    if (parts.length === 1 && parts[0].length >= 2) return parts[0].slice(0, 2).toUpperCase();
+  }
+  if (user.username) return user.username.slice(0, 2).toUpperCase();
+  return (user.role || 'SOC').slice(0, 2).toUpperCase();
+}
 
-function showLoginOverlay(show) {
-  const el = $('login-overlay');
-  if (!el) return;
-  el.style.display = show ? 'flex' : 'none';
-  if (show && pollTimerId) {
-    clearInterval(pollTimerId);
-    pollTimerId = null;
+function toggleUserProfileMenu(e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  const menu = $('user-profile-menu');
+  const btn = $('user-profile-btn');
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    closeUserProfileMenu();
+  } else {
+    menu.classList.add('open');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
   }
 }
 
-function quickFillLogin(user, pass) {
-  if ($('login-username')) $('login-username').value = user;
-  if ($('login-password')) $('login-password').value = pass;
-  if ($('login-error')) $('login-error').style.display = 'none';
+function closeUserProfileMenu() {
+  const menu = $('user-profile-menu');
+  const btn = $('user-profile-btn');
+  if (menu) menu.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
-function applyRbacUiPermissions(role) {
-  const activeRole = String(role || 'analyst').toLowerCase();
-  const pill = $('rbac-current-role-pill');
-  if (pill) {
-    pill.textContent = `ROLE: ${activeRole.toUpperCase()}`;
-    pill.className = `pill ${activeRole === 'admin' ? 'OK' : activeRole === 'engineer' ? 'HIGH' : 'MED'}`;
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#header-user-pill')) {
+    closeUserProfileMenu();
   }
-  document.querySelectorAll('[data-rbac]').forEach(el => {
-    const allowed = String(el.getAttribute('data-rbac') || '')
-      .split(',')
-      .map(s => s.trim().toLowerCase())
-      .filter(Boolean);
-    const hasAccess = !allowed.length || allowed.includes(activeRole);
-    if (hasAccess) {
-      el.removeAttribute('data-rbac-locked');
-      if (el.tagName === 'OPTION') {
-        el.disabled = false;
-        el.hidden = false;
-      }
-    } else {
-      el.setAttribute('data-rbac-locked', 'true');
-      if (el.tagName === 'OPTION') {
-        el.disabled = true;
-        el.hidden = true;
-      }
-    }
-  });
-  const arModeSel = $('manual-ar-mode');
-  if (arModeSel && activeRole === 'analyst' && arModeSel.value === 'execute') {
-    arModeSel.value = 'recommend';
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeUserProfileMenu();
   }
-  if (currentSocUser && !isTabAllowedForRole(activeTab, activeRole)) {
-    switchTab('sec', true);
-  }
-}
+});
 
 function updateUserHeaderUI(user) {
   currentSocUser = user;
@@ -9271,13 +9642,43 @@ function updateUserHeaderUI(user) {
   if (!user) {
     if (pill) pill.style.display = 'none';
     if (sbBtn) sbBtn.style.display = 'none';
+    closeUserProfileMenu();
     return;
   }
   if (pill) pill.style.display = 'inline-flex';
   if (sbBtn) sbBtn.style.display = 'flex';
   if (sbLbl) sbLbl.textContent = `Logout (${user.username})`;
-  if ($('hdr-user-name')) $('hdr-user-name').textContent = user.username || user.display_name;
-  if ($('hdr-user-role')) $('hdr-user-role').textContent = String(user.role || 'analyst').toUpperCase();
+
+  const roleStr = String(user.role || 'analyst').toLowerCase();
+  const roleUpper = roleStr.toUpperCase();
+  const initials = getUserInitials(user);
+
+  if ($('hdr-user-avatar')) {
+    $('hdr-user-avatar').textContent = initials;
+    $('hdr-user-avatar').className = `user-avatar-badge role-${roleStr}`;
+  }
+  if ($('hdr-user-name')) {
+    $('hdr-user-name').textContent = user.username || user.display_name;
+  }
+  if ($('hdr-user-role')) {
+    $('hdr-user-role').textContent = roleUpper;
+    $('hdr-user-role').className = `user-role-tag role-badge-${roleStr}`;
+  }
+  if ($('hdr-menu-avatar')) {
+    $('hdr-menu-avatar').textContent = initials;
+    $('hdr-menu-avatar').className = `profile-menu-avatar role-${roleStr}`;
+  }
+  if ($('hdr-menu-fullname')) {
+    $('hdr-menu-fullname').textContent = user.display_name || user.username;
+  }
+  if ($('hdr-menu-username')) {
+    $('hdr-menu-username').textContent = `@${user.username} • ${user.user_id || 'USR-001'}`;
+  }
+  if ($('hdr-menu-role-pill')) {
+    $('hdr-menu-role-pill').textContent = roleUpper;
+    $('hdr-menu-role-pill').className = `menu-role-pill role-${roleStr}`;
+  }
+
   applyRbacUiPermissions(user.role);
 }
 

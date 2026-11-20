@@ -19,5 +19,12 @@ test_proc.log
 .AppleDouble
 .LSOverride
 
+# Node
+node_modules/
+dist/
+
+# Runtime data & generated certs
+data/
+
 # Local IDE / Agents cache
 .agents/
