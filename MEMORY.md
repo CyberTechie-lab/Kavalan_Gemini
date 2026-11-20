@@ -123,6 +123,9 @@
 
 | Commit Hash | Commit Message Summary |
 |---|---|
+| `9bfdcc7` | `feat(db): track persistent production SQLite databases for prototype deployment` |
+| `e27e771` | `feat(simulation): add 1-click multi-IP rotating AI agent campaign (Strix Benchmark)` |
+| `dc5a97a` | `docs: add project memory file summarizing architecture, milestones, and commits` |
 | `66ea0b1` | `fix(ui): optimize top header layout, responsive breakpoints, and sign-in state` |
 | `c915730` | `feat(ui): add Kavalan logo mark favicon assets and update favicon routes` |
 | `ac84012` | `fix(auth): define showLoginOverlay, quickFillLogin, and applyRbacUiPermissions` |
