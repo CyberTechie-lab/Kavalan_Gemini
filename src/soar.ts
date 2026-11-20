@@ -325,11 +325,26 @@ export class ThreatIntelEngine {
       feeds_active: ['Kavalan Global Telemetry', 'AlienVault OTX', 'AbuseIPDB', 'Feodo Tracker', 'CISA KEV'],
     };
   }
+
+  public loadFromDb(iocs: ThreatIntelIOC[]): void {
+    for (const item of iocs) {
+      this.iocs.set(item.ioc, item);
+    }
+  }
 }
 
 export class ActiveResponseEngine {
   private orders: ActiveResponseOrder[] = [];
   private nextId = 1;
+  public onOrderChange?: (order: ActiveResponseOrder) => void;
+
+  public loadFromDb(orders: ActiveResponseOrder[]): void {
+    if (orders.length > 0) {
+      this.orders = orders;
+      const maxId = Math.max(0, ...orders.map((o) => o.id));
+      this.nextId = maxId + 1;
+    }
+  }
 
   dryRunAction(params: {
     command: string;
@@ -439,6 +454,7 @@ export class ActiveResponseEngine {
     };
     this.orders.unshift(order);
     if (this.orders.length > 500) this.orders.length = 500;
+    this.onOrderChange?.(order);
     return order;
   }
 
@@ -457,6 +473,7 @@ export class ActiveResponseEngine {
       action: 'APPROVED & DISPATCHED',
       note: `Approved by ${approver}; status=${order.status}`,
     });
+    this.onOrderChange?.(order);
     return order;
   }
 
@@ -471,6 +488,7 @@ export class ActiveResponseEngine {
       action: 'REJECTED',
       note,
     });
+    this.onOrderChange?.(order);
     return order;
   }
 
@@ -489,6 +507,7 @@ export class ActiveResponseEngine {
           note: `Endpoint ${agentId} confirmed local containment`,
         });
         pending.push(o);
+        this.onOrderChange?.(o);
       }
     }
     return pending;
@@ -507,6 +526,7 @@ export class ActiveResponseEngine {
       note: `Containment reversed by ${actor}`,
     });
     order.details = `${order.details} | Released by ${actor} at ${new Date(now * 1000).toISOString()}`;
+    this.onOrderChange?.(order);
     return true;
   }
 
@@ -536,6 +556,7 @@ export interface SoarStoreHooks {
     entities: { ips: string[]; hosts: string[]; users: string[] };
   }) => string;
   dispatchWebhook: (eventType: string, payload: Record<string, any>) => number;
+  onSaveRun?: (run: SoarPlaybookRun) => void;
 }
 
 export class AutonomousSoarPlaybookEngine {
@@ -546,6 +567,15 @@ export class AutonomousSoarPlaybookEngine {
   constructor(hooks: SoarStoreHooks) {
     this.hooks = hooks;
     this.seedDefaults();
+  }
+
+  public loadFromDb(playbooks: SoarPlaybook[], runs: SoarPlaybookRun[]): void {
+    for (const pb of playbooks) {
+      this.playbooks.set(pb.id, pb);
+    }
+    if (runs.length > 0) {
+      this.runs = runs;
+    }
   }
 
   private seedDefaults(): void {
@@ -748,6 +778,7 @@ export class AutonomousSoarPlaybookEngine {
     };
     this.runs.unshift(run);
     if (this.runs.length > 200) this.runs.length = 200;
+    this.hooks.onSaveRun?.(run);
     return run;
   }
 }
@@ -898,6 +929,22 @@ export function isVersionVulnerable(installed: string, fixed: string): boolean {
 export class VulnerabilityEngine {
   private scaReports = new Map<string, SCAReport>();
   private vulnsByAgent = new Map<string, VulnerabilityFinding[]>();
+  public onSaveReport?: (report: SCAReport) => void;
+  public onSaveVuln?: (vuln: VulnerabilityFinding) => void;
+
+  public loadFromDb(reports: SCAReport[], vulns: VulnerabilityFinding[]): void {
+    for (const r of reports) {
+      this.scaReports.set(r.agent_id, r);
+    }
+    for (const v of vulns) {
+      let list = this.vulnsByAgent.get(v.agent_id);
+      if (!list) {
+        list = [];
+        this.vulnsByAgent.set(v.agent_id, list);
+      }
+      list.push(v);
+    }
+  }
 
   saveScaReport(agentId: string, host: string, payload: { score?: number; checks: SCACheck[] }): SCAReport {
     const checks = payload.checks || [];
@@ -921,6 +968,7 @@ export class VulnerabilityEngine {
       checks,
     };
     this.scaReports.set(agentId, report);
+    this.onSaveReport?.(report);
     return report;
   }
 
@@ -955,6 +1003,9 @@ export class VulnerabilityEngine {
       }
     }
     this.vulnsByAgent.set(agentId, found);
+    for (const v of found) {
+      this.onSaveVuln?.(v);
+    }
     return found;
   }
 

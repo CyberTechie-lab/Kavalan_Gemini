@@ -16,6 +16,7 @@ import { SyslogReceiverManager } from './receivers.js';
 import { RetentionArchiveManager } from './retention.js';
 import { DEFAULT_AGENT_BINARY_SHA256, SecurityManager } from './security.js';
 import { SigmaRuleConverter } from './sigma.js';
+import { KavalanDatabase } from './db.js';
 import {
   ActiveResponseEngine,
   AutonomousSoarPlaybookEngine,
@@ -321,6 +322,7 @@ export class KavalanPlatform {
   private ruleEngine = new KavalanRuleEngine();
   private decoder = new DecoderPipeline();
 
+  public db = new KavalanDatabase();
   public security = new SecurityManager();
   public retention = new RetentionArchiveManager();
   public receivers: SyslogReceiverManager;
@@ -336,6 +338,10 @@ export class KavalanPlatform {
   private cachedCounts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0 };
 
   constructor() {
+    this.activeResponse.onOrderChange = (order) => this.db.saveActiveResponse(order);
+    this.vulnEngine.onSaveReport = (rep) => this.db.saveScaReport(rep);
+    this.vulnEngine.onSaveVuln = (v) => this.db.saveVulnerability(v);
+
     this.soarPlaybooks = new AutonomousSoarPlaybookEngine({
       executeContainment: (command, target, reason, targetAgent = 'all') => {
         this.activeResponse.triggerAction({
@@ -359,6 +365,7 @@ export class KavalanPlatform {
         return created.id;
       },
       dispatchWebhook: (eventType, payload) => this.dispatchWebhook(eventType, payload),
+      onSaveRun: (run) => this.db.savePlaybookRun(run),
     });
 
     const tlsCreds = this.security.getTlsServerCredentials();
@@ -370,7 +377,100 @@ export class KavalanPlatform {
     });
     this.receivers.startAll();
 
+    this.loadFromDatabase();
     this.seedInitialState();
+  }
+
+  private loadFromDatabase(): void {
+    console.log('[KavalanPlatform] Hydrating security state from SQLite database...');
+
+    // 1. Load Agents
+    const dbAgents = this.db.loadAllAgents();
+    if (dbAgents.length > 0) {
+      for (const ag of dbAgents) {
+        this.agents.set(ag.id, ag);
+        const numId = parseInt(ag.id, 10);
+        if (!Number.isNaN(numId) && numId >= this.nextAgentNumericId) {
+          this.nextAgentNumericId = numId + 1;
+        }
+      }
+      console.log(`[KavalanPlatform] Loaded ${dbAgents.length} agents from DB`);
+    }
+
+    // 2. Load Custom Rules
+    const dbRules = this.db.loadAllCustomRules();
+    if (dbRules.length > 0) {
+      for (const r of dbRules) {
+        this.customRules.set(r.id, r);
+        if (r.id >= this.nextCustomRuleId) {
+          this.nextCustomRuleId = r.id + 1;
+        }
+      }
+      this.syncRulesToEngine();
+      console.log(`[KavalanPlatform] Loaded ${dbRules.length} custom rules from DB`);
+    }
+
+    // 3. Load Alerts
+    const dbAlerts = this.db.loadAllAlerts();
+    if (dbAlerts.length > 0) {
+      this.alertsIndex = dbAlerts;
+      this.nextAlertId = Math.max(1, ...dbAlerts.map((a) => a.id)) + 1;
+      console.log(`[KavalanPlatform] Loaded ${dbAlerts.length} alerts from DB (nextAlertId=${this.nextAlertId})`);
+    }
+
+    // 4. Load Incident Cases & Notes
+    const dbCases = this.db.loadAllCases();
+    if (dbCases.length > 0) {
+      for (const c of dbCases) {
+        this.cases.set(c.id, c);
+        const m = /CASE-(\d+)/.exec(c.id);
+        if (m) {
+          const n = parseInt(m[1], 10);
+          if (!Number.isNaN(n) && n >= this.nextCaseNum) {
+            this.nextCaseNum = n + 1;
+          }
+        }
+      }
+      console.log(`[KavalanPlatform] Loaded ${dbCases.length} cases from DB (nextCaseNum=${this.nextCaseNum})`);
+    }
+
+    // 5. Load Active Responses
+    const dbActiveResponses = this.db.loadAllActiveResponses();
+    if (dbActiveResponses.length > 0) {
+      this.activeResponse.loadFromDb(dbActiveResponses);
+      console.log(`[KavalanPlatform] Loaded ${dbActiveResponses.length} active responses from DB`);
+    }
+
+    // 6. Load Threat Intel IOCs
+    const dbIocs = this.db.loadAllThreatIntel();
+    if (dbIocs.length > 0) {
+      this.threatIntel.loadFromDb(dbIocs);
+      console.log(`[KavalanPlatform] Loaded ${dbIocs.length} threat intel IOCs from DB`);
+    }
+
+    // 7. Load SOAR Playbooks & Playbook Runs
+    const dbPlaybooks = this.db.loadAllPlaybooks();
+    const dbRuns = this.db.loadAllPlaybookRuns();
+    if (dbPlaybooks.length > 0 || dbRuns.length > 0) {
+      this.soarPlaybooks.loadFromDb(dbPlaybooks, dbRuns);
+      console.log(`[KavalanPlatform] Loaded ${dbPlaybooks.length} playbooks & ${dbRuns.length} playbook runs from DB`);
+    }
+
+    // 8. Load SCA Reports & Vulnerabilities
+    const dbSca = this.db.loadAllScaReports();
+    const dbVulns = this.db.loadAllVulnerabilities();
+    if (dbSca.length > 0 || dbVulns.length > 0) {
+      this.vulnEngine.loadFromDb(dbSca, dbVulns);
+      console.log(`[KavalanPlatform] Loaded ${dbSca.length} SCA reports & ${dbVulns.length} vulnerabilities from DB`);
+    }
+
+    // 9. Load Recent Events
+    const dbEvents = this.db.loadRecentEvents(15000);
+    if (dbEvents.length > 0) {
+      this.eventsIndex = dbEvents;
+      this.nextEventId = Math.max(1, ...dbEvents.map((e) => e.id)) + 1;
+      console.log(`[KavalanPlatform] Loaded ${dbEvents.length} events from DB (nextEventId=${this.nextEventId})`);
+    }
   }
 
   private seedInitialState(): void {
@@ -551,46 +651,54 @@ export class KavalanPlatform {
       enabled: true,
     });
 
-    // 7. Populate initial multi-vector telemetry & correlated alerts
-    this.simulateScenario('cross_source_killchain', 'web-01', '001');
-    this.simulateScenario('fim_ransomware', 'server', '005');
-    this.simulateScenario('ssh_brute', 'auth-01', '002');
-    this.simulateScenario('benign_burst', 'web-01', '001');
+    // 7. Populate initial multi-vector telemetry & correlated alerts (if DB had no alerts)
+    if (this.alertsIndex.length === 0) {
+      this.simulateScenario('cross_source_killchain', 'web-01', '001');
+      this.simulateScenario('fim_ransomware', 'server', '005');
+      this.simulateScenario('ssh_brute', 'auth-01', '002');
+      this.simulateScenario('benign_burst', 'web-01', '001');
+    }
 
     // 8. Seed a recommended containment action awaiting analyst approval
-    this.activeResponse.triggerAction({
-      command: 'isolate-host',
-      actor_ip: 'server',
-      rule_id: 100501,
-      rule_level: 13,
-      reason: 'Recommended host network isolation after critical FIM modifications on /etc/shadow and /etc/sudoers',
-      target_agent: '005',
-      timeout_sec: 3600,
-      mode: 'recommend',
-      actor: 'Kavalan Triage Copilot',
-    });
-
-    // 9. Seed historical baseline triage metrics & shift handover case state
-    const topAlert = this.alertsIndex.find((a) => a.level === 'CRITICAL');
-    if (topAlert && !topAlert.linked_case_id) {
-      this.createCase({
-        title: `Intrusion Kill-Chain: ${topAlert.source_ip} -> ${topAlert.host}`,
-        severity: 'CRITICAL',
-        assignee: 'A. Sharma (Tier 2)',
-        waiting_on: 'AppSec Patch Verification',
-        description: 'Cross-source web exploitation followed by valid SSH login on msfadmin.',
-        entities: { ips: [topAlert.source_ip], hosts: [topAlert.host], users: ['msfadmin'] },
-        alert_id: topAlert.id,
+    if (this.activeResponse.getAllActions().length === 0) {
+      this.activeResponse.triggerAction({
+        command: 'isolate-host',
+        actor_ip: 'server',
+        rule_id: 100501,
+        rule_level: 13,
+        reason: 'Recommended host network isolation after critical FIM modifications on /etc/shadow and /etc/sudoers',
+        target_agent: '005',
+        timeout_sec: 3600,
+        mode: 'recommend',
+        actor: 'Kavalan Triage Copilot',
       });
     }
-    // Mark the brute-force alert as triaged TP so initial SOC reports have non-zero metrics
-    const sshAlert = this.alertsIndex.find((a) => a.source_ip.startsWith('198.51.100.'));
-    if (sshAlert) {
-      this.submitAlertFeedback(sshAlert.id, 'true_positive', 'A. Sharma (Tier 2)', 'Confirmed automated SSH dictionary burst');
+
+    // 9. Seed historical baseline triage metrics & shift handover case state
+    if (this.cases.size === 0) {
+      const topAlert = this.alertsIndex.find((a) => a.level === 'CRITICAL');
+      if (topAlert && !topAlert.linked_case_id) {
+        this.createCase({
+          title: `Intrusion Kill-Chain: ${topAlert.source_ip} -> ${topAlert.host}`,
+          severity: 'CRITICAL',
+          assignee: 'A. Sharma (Tier 2)',
+          waiting_on: 'AppSec Patch Verification',
+          description: 'Cross-source web exploitation followed by valid SSH login on msfadmin.',
+          entities: { ips: [topAlert.source_ip], hosts: [topAlert.host], users: ['msfadmin'] },
+          alert_id: topAlert.id,
+        });
+      }
+      // Mark the brute-force alert as triaged TP so initial SOC reports have non-zero metrics
+      const sshAlert = this.alertsIndex.find((a) => a.source_ip.startsWith('198.51.100.'));
+      if (sshAlert) {
+        this.submitAlertFeedback(sshAlert.id, 'true_positive', 'A. Sharma (Tier 2)', 'Confirmed automated SSH dictionary burst');
+      }
     }
 
     // 10. Seed Enterprise Multi-Source Telemetry (Windows, Sysmon, CloudTrail, Entra ID, GCP, Firewall, DNS, Proxy, K8s)
-    this.seedMultiSourceLogs();
+    if (this.eventsIndex.length === 0) {
+      this.seedMultiSourceLogs();
+    }
 
     // 11. Seed Scheduled Searches that raise alerts automatically
     const schedDefs: Array<Omit<ScheduledSearch, 'id' | 'last_run_at' | 'next_run_at' | 'last_match_count' | 'alerts_raised' | 'created_at'>> = [
@@ -747,6 +855,7 @@ export class KavalanPlatform {
       tamper_reason: null,
     };
     this.agents.set(id, agent);
+    this.db.saveAgent(agent);
 
     const cfg: AgentConfigRecord = {
       agent_id: id,
@@ -1051,6 +1160,7 @@ export class KavalanPlatform {
         ecs: EventNormalizer.toEcs(ev),
       };
       this.eventsIndex.push(indexed);
+      this.db.insertEvent(indexed);
 
       const matches = this.ruleEngine.evaluateEvent(ev as any);
       for (const m of matches) {
@@ -1251,6 +1361,7 @@ export class KavalanPlatform {
         existing.sample_event_ids = existing.sample_event_ids.slice(-25);
       }
       existing.detail = { ...existing.detail, ...params.detail, event_count: existing.count };
+      this.db.saveAlert(existing);
       return existing;
     }
 
@@ -1279,6 +1390,7 @@ export class KavalanPlatform {
 
     this.alertsIndex.unshift(alert);
     if (this.alertsIndex.length > 500) this.alertsIndex.length = 500;
+    this.db.saveAlert(alert);
     return alert;
   }
 
@@ -1629,19 +1741,22 @@ export class KavalanPlatform {
     memory_budget_mb: number;
     estimated_monthly_savings_usd: number;
   } {
-    const approxBytes = this.eventsIndex.length * 420 + this.alertsIndex.length * 380;
+    const dbStats = this.db.getStats();
+    const totalDbBytes = dbStats.indexer_db_size_bytes + dbStats.manager_db_size_bytes + dbStats.kavalan_db_size_bytes;
+    const totalEvents = Math.max(dbStats.total_events, this.eventsIndex.length);
+    const totalAlerts = Math.max(dbStats.total_alerts, this.alertsIndex.length);
     const mem = process.memoryUsage();
     const rssMb = Math.round((mem.rss / (1024 * 1024)) * 10) / 10;
     const heapMb = Math.round((mem.heapUsed / (1024 * 1024)) * 10) / 10;
-    const savingsUsd = Math.max(480, Math.round(this.eventsIndex.length * 1.45 + this.agents.size * 180));
+    const savingsUsd = Math.max(480, Math.round(totalEvents * 1.45 + this.agents.size * 180));
     return {
-      total_events: this.eventsIndex.length,
-      total_alerts: this.alertsIndex.length,
-      db_size_bytes: approxBytes,
-      db_size_mb: Math.round((approxBytes / (1024 * 1024)) * 100) / 100,
+      total_events: totalEvents,
+      total_alerts: totalAlerts,
+      db_size_bytes: totalDbBytes > 0 ? totalDbBytes : this.eventsIndex.length * 420 + this.alertsIndex.length * 380,
+      db_size_mb: Math.round(((totalDbBytes > 0 ? totalDbBytes : this.eventsIndex.length * 420) / (1024 * 1024)) * 100) / 100,
       runtime_rss_mb: rssMb,
       heap_used_mb: heapMb,
-      memory_budget_mb: 150,
+      memory_budget_mb: 256,
       estimated_monthly_savings_usd: savingsUsd,
     };
   }
@@ -1764,6 +1879,7 @@ export class KavalanPlatform {
     else rf.benign += 1;
 
     this.analystTriageCounts.set(analyst, (this.analystTriageCounts.get(analyst) || 0) + 1);
+    this.db.saveAlert(alert);
     return alert;
   }
 
@@ -1792,6 +1908,7 @@ export class KavalanPlatform {
         for (const a of targetAlerts) {
           a.linked_case_id = c.id;
           c.linked_alert_ids.push(a.id);
+          this.db.saveAlert(a);
           for (const rl of a.raw_logs) {
             c.timeline.push({
               id: `TL-${Date.now().toString(36)}-${rl.event_id}`,
@@ -1810,6 +1927,7 @@ export class KavalanPlatform {
           }
           processedIds.push(a.id);
         }
+        this.db.saveCase(c);
         escalatedCaseId = c.id;
       }
       return { processed: processedIds.length, case_id: escalatedCaseId, alert_ids: processedIds };
@@ -1824,6 +1942,7 @@ export class KavalanPlatform {
         alert.triage_status = 'closed';
         alert.feedback_by = analyst;
         alert.feedback_at = Math.floor(Date.now() / 1000);
+        this.db.saveAlert(alert);
       } else if (action === 'suppress') {
         this.createSuppression({
           name: `Quick Suppress: ${alert.rule_name} on ${alert.host}`,
@@ -2895,6 +3014,13 @@ export class KavalanPlatform {
       updated_at: now,
     };
     this.cases.set(id, c);
+    this.db.saveCase(c);
+    this.db.insertCaseNote({
+      case_id: id,
+      author: 'Kavalan SIEM',
+      note: c.notes[0]?.note || `Incident Case #${id} initialized`,
+      created_at: now,
+    });
     return c;
   }
 
@@ -2938,14 +3064,22 @@ export class KavalanPlatform {
 
     const reasonText = c.closure_reason ? `, closure=${c.closure_reason}` : '';
     const waitText = c.waiting_on ? `, waiting_on=${c.waiting_on}` : '';
-    c.notes.push({
-      id: c.notes.length + 1,
+    const noteText = `Updated status=${c.status}, assignee=${c.assignee}${reasonText}${waitText}`;
+    const noteId = this.db.insertCaseNote({
+      case_id: caseId,
       author: 'Workflow Engine',
-      note: `Updated status=${c.status}, assignee=${c.assignee}${reasonText}${waitText}`,
+      note: noteText,
+      created_at: now,
+    });
+    c.notes.push({
+      id: noteId > 0 ? noteId : c.notes.length + 1,
+      author: 'Workflow Engine',
+      note: noteText,
       created_at: now,
     });
     c.notes_count = c.notes.length;
     c.updated_at = now;
+    this.db.saveCase(c);
     return c;
   }
 
@@ -2953,14 +3087,21 @@ export class KavalanPlatform {
     const c = this.cases.get(caseId);
     if (!c) return null;
     const now = Math.floor(Date.now() / 1000);
+    const noteId = this.db.insertCaseNote({
+      case_id: caseId,
+      author,
+      note,
+      created_at: now,
+    });
     c.notes.push({
-      id: c.notes.length + 1,
+      id: noteId > 0 ? noteId : c.notes.length + 1,
       author,
       note,
       created_at: now,
     });
     c.notes_count = c.notes.length;
     c.updated_at = now;
+    this.db.saveCase(c);
     return c;
   }
 
@@ -3004,6 +3145,7 @@ export class KavalanPlatform {
     c.timeline.push(item);
     c.timeline.sort((a, b) => a.timestamp - b.timestamp);
     c.updated_at = now;
+    this.db.saveCase(c);
     return c;
   }
 
@@ -3023,6 +3165,7 @@ export class KavalanPlatform {
       added_at: now,
     });
     c.updated_at = now;
+    this.db.saveCase(c);
     return c;
   }
 
@@ -3576,12 +3719,16 @@ export class KavalanPlatform {
     };
     this.customRules.set(id, rule);
     this.syncRulesToEngine();
+    this.db.saveCustomRule(rule);
     return { success: true, rule };
   }
 
   deleteCustomRule(ruleId: number): boolean {
     const deleted = this.customRules.delete(ruleId);
-    if (deleted) this.syncRulesToEngine();
+    if (deleted) {
+      this.syncRulesToEngine();
+      this.db.deleteCustomRule(ruleId);
+    }
     return deleted;
   }
 
@@ -3591,6 +3738,7 @@ export class KavalanPlatform {
     r.enabled = enabled !== undefined ? Boolean(enabled) : !r.enabled;
     r.updated_at = Math.floor(Date.now() / 1000);
     this.syncRulesToEngine();
+    this.db.saveCustomRule(r);
     return r;
   }
 
