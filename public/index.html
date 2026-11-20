@@ -61,6 +61,21 @@
     --shadow-md: 0 4px 12px rgba(2, 6, 23, 0.45);
     --shadow-lg: 0 16px 36px rgba(2, 6, 23, 0.65);
 
+    --header-bg: rgba(15, 23, 42, 0.88);
+    --header-card-bg: rgba(255, 255, 255, 0.03);
+    --header-card-border: var(--border);
+    --redteam-color: #c084fc;
+    --redteam-bg: rgba(139, 92, 246, 0.1);
+    --redteam-border: rgba(139, 92, 246, 0.3);
+    --redteam-hover-bg: rgba(139, 92, 246, 0.2);
+    --redteam-hover-border: #a855f7;
+    --role-admin-color: #c084fc;
+    --role-engineer-color: #38bdf8;
+    --role-analyst-color: #34d399;
+    --env-tag-color: #38bdf8;
+    --env-tag-bg: rgba(56, 189, 248, 0.1);
+    --env-tag-border: rgba(56, 189, 248, 0.25);
+
     --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --radius-sm: 4px;
@@ -112,6 +127,21 @@
     --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
     --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
     --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.12);
+
+    --header-bg: rgba(255, 255, 255, 0.94);
+    --header-card-bg: #f8fafc;
+    --header-card-border: #e2e8f0;
+    --redteam-color: #6d28d9;
+    --redteam-bg: rgba(109, 40, 217, 0.08);
+    --redteam-border: rgba(109, 40, 217, 0.25);
+    --redteam-hover-bg: rgba(109, 40, 217, 0.16);
+    --redteam-hover-border: #7c3aed;
+    --role-admin-color: #7c3aed;
+    --role-engineer-color: #0284c7;
+    --role-analyst-color: #059669;
+    --env-tag-color: #0284c7;
+    --env-tag-bg: rgba(2, 132, 199, 0.08);
+    --env-tag-border: rgba(2, 132, 199, 0.25);
 
     --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -683,7 +713,7 @@
   .top-header {
     height: 56px;
     padding: 0 24px;
-    background: rgba(15, 23, 42, 0.88);
+    background: var(--header-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
@@ -708,8 +738,8 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
+    background: var(--header-card-bg);
+    border: 1px solid var(--header-card-border);
     color: var(--text-secondary);
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -755,9 +785,9 @@
     font-size: 9.5px;
     font-weight: 700;
     letter-spacing: 0.05em;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: var(--env-tag-color);
+    background: var(--env-tag-bg);
+    border: 1px solid var(--env-tag-border);
     border-radius: 4px;
     padding: 1px 5px;
     text-transform: uppercase;
@@ -776,11 +806,11 @@
     font-size: 11px;
     color: var(--text-tertiary);
     white-space: nowrap;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
+    background: var(--header-card-bg);
+    border: 1px solid var(--header-card-border);
     border-radius: 20px;
     padding: 4px 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
   }
   .capsule-step {
     display: inline-flex;
@@ -826,10 +856,10 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--ok);
-    background: rgba(16, 185, 129, 0.12);
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-border);
     padding: 2px 7px;
     border-radius: 10px;
-    border: 1px solid rgba(16, 185, 129, 0.25);
   }
 
   .top-header-right {
@@ -840,8 +870,8 @@
   }
   .btn-header-tool {
     height: 32px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
+    background: var(--header-card-bg);
+    border: 1px solid var(--header-card-border);
     color: var(--text-secondary);
     padding: 0 10px;
     border-radius: var(--radius-md);
@@ -861,14 +891,14 @@
     color: var(--text-primary);
   }
   .btn-redteam {
-    background: rgba(139, 92, 246, 0.1);
-    border-color: rgba(139, 92, 246, 0.3);
-    color: #c084fc;
+    background: var(--redteam-bg);
+    border-color: var(--redteam-border);
+    color: var(--redteam-color);
   }
   .btn-redteam:hover {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: #a855f7;
-    color: #f3e8ff;
+    background: var(--redteam-hover-bg);
+    border-color: var(--redteam-hover-border);
+    color: var(--redteam-color);
   }
   .shortcut-k-badge {
     display: inline-flex;
@@ -880,8 +910,8 @@
     font-size: 10px;
     font-weight: 700;
     font-family: var(--mono);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
     border-radius: 3px;
     color: var(--text-tertiary);
     margin-left: 2px;
@@ -895,8 +925,8 @@
     font-size: 11.5px;
     font-weight: 500;
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
+    background: var(--header-card-bg);
+    border: 1px solid var(--header-card-border);
     padding: 0 11px;
     border-radius: var(--radius-md);
     white-space: nowrap;
@@ -926,8 +956,8 @@
     gap: 8px;
     height: 34px;
     padding: 2px 10px 2px 3px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border);
+    background: var(--header-card-bg);
+    border: 1px solid var(--header-card-border);
     border-radius: 18px;
     color: var(--text-primary);
     cursor: pointer;
@@ -935,11 +965,11 @@
     user-select: none;
   }
   .user-profile-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface-subtle);
     border-color: var(--border-strong);
   }
   .user-profile-btn[aria-expanded="true"] {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface-subtle);
     border-color: var(--accent);
   }
   .user-avatar-badge {
@@ -992,9 +1022,9 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .role-badge-admin { color: #c084fc; }
-  .role-badge-engineer { color: #38bdf8; }
-  .role-badge-analyst { color: #34d399; }
+  .role-badge-admin { color: var(--role-admin-color); }
+  .role-badge-engineer { color: var(--role-engineer-color); }
+  .role-badge-analyst { color: var(--role-analyst-color); }
   .user-chevron-icon {
     color: var(--text-tertiary);
     transition: transform 0.2s ease;
@@ -1011,10 +1041,10 @@
     top: calc(100% + 8px);
     right: 0;
     width: 290px;
-    background: #0b1120;
+    background: var(--surface-elevated);
     border: 1px solid var(--border-strong);
     border-radius: 12px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
     padding: 10px;
     z-index: 1050;
     animation: profileMenuPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1076,18 +1106,18 @@
     padding: 2px 7px;
     border-radius: 10px;
     background: rgba(168, 85, 247, 0.15);
-    color: #c084fc;
+    color: var(--role-admin-color);
     border: 1px solid rgba(168, 85, 247, 0.3);
     text-transform: uppercase;
   }
   .menu-role-pill.role-engineer {
     background: rgba(14, 165, 233, 0.15);
-    color: #38bdf8;
+    color: var(--role-engineer-color);
     border-color: rgba(14, 165, 233, 0.3);
   }
   .menu-role-pill.role-analyst {
     background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    color: var(--role-analyst-color);
     border-color: rgba(16, 185, 129, 0.3);
   }
   .menu-tls-pill {
@@ -1095,9 +1125,9 @@
     font-weight: 600;
     padding: 2px 7px;
     border-radius: 10px;
-    background: rgba(16, 185, 129, 0.12);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: var(--ok-bg);
+    color: var(--ok);
+    border: 1px solid var(--ok-border);
   }
   .profile-menu-divider {
     height: 1px;
@@ -1118,7 +1148,7 @@
   .menu-role-select {
     width: 100%;
     height: 32px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--surface-subtle);
     color: var(--text-primary);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -1151,7 +1181,7 @@
     cursor: pointer;
   }
   .profile-menu-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-subtle);
     color: var(--text-primary);
   }
   .menu-item-badge {
@@ -1160,7 +1190,8 @@
     font-weight: 700;
     padding: 1px 6px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
     color: var(--text-tertiary);
   }
   .profile-menu-logout {
