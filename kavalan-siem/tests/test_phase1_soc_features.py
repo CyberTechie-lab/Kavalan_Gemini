@@ -15,9 +15,16 @@ Tests:
 
 import json
 import sqlite3
+import sys
 import time
-import pytest
 from pathlib import Path
+import pytest
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+if str(BASE_DIR / "manager") not in sys.path:
+    sys.path.insert(0, str(BASE_DIR / "manager"))
 
 from auth import AuthManager, hash_password, verify_password, create_session_token, verify_session_token
 from audit import AuditLogger

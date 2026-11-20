@@ -1807,7 +1807,7 @@
     <nav class="sidebar-nav" aria-label="Console navigation tabs">
       
       <!-- 1. CORE OPERATIONS (TOP PRIORITY) -->
-      <div class="nav-section-title">Core Operations</div>
+      <div class="nav-section-title" id="nav-sec-core">Core Operations</div>
       
       <button class="dock-tab active" id="btn-sec" onclick="switchTab('sec')" title="Security Ops &amp; Alerts" data-label="Security Ops &amp; Alerts">
         <span class="dock-tab-inner">
@@ -1842,7 +1842,7 @@
       </button>
 
       <!-- 2. THREAT LAB & HUNTING -->
-      <div class="nav-section-title">Threat Lab &amp; Forensics</div>
+      <div class="nav-section-title" id="nav-sec-threat">Threat Lab &amp; Forensics</div>
 
       <button class="dock-tab" id="btn-graph" onclick="switchTab('graph')" title="Attack Graph &amp; Lab" data-label="Attack Graph &amp; Lab">
         <span class="dock-tab-inner">
@@ -1866,7 +1866,7 @@
       </button>
 
       <!-- 3. AI & INTELLIGENCE -->
-      <div class="nav-section-title">AI &amp; Threat Intelligence</div>
+      <div class="nav-section-title" id="nav-sec-ai">AI &amp; Threat Intelligence</div>
 
       <button class="dock-tab" id="btn-ai" onclick="switchTab('ai')" title="AI Threat Copilot" data-label="AI Threat Copilot">
         <span class="dock-tab-inner">
@@ -1884,8 +1884,8 @@
         <span class="dock-tab-badge OK" style="font-size:9px;">Active</span>
       </button>
 
-      <!-- 4. POSTURE & COMPLIANCE -->
-      <div class="nav-section-title">Posture &amp; Detection</div>
+      <!-- 4. POSTURE & DETECTION -->
+      <div class="nav-section-title" id="nav-sec-posture">Posture &amp; Detection</div>
 
       <button class="dock-tab" id="btn-vuln" onclick="switchTab('vuln')" title="SCA &amp; Vulnerabilities" data-label="SCA &amp; Vulnerabilities">
         <span class="dock-tab-inner">
@@ -1909,8 +1909,16 @@
         <span class="dock-tab-badge ok" id="badge-rules-nav" style="display:none;">0</span>
       </button>
 
-      <!-- 5. GOVERNANCE & COMPLIANCE -->
-      <div class="nav-section-title">Governance &amp; Audit</div>
+      <!-- 5. GOVERNANCE & ACCESS -->
+      <div class="nav-section-title" id="nav-sec-governance">Governance &amp; Access</div>
+
+      <button class="dock-tab" id="btn-rbac" onclick="switchTab('rbac')" title="Identity &amp; RBAC" data-label="Identity &amp; RBAC">
+        <span class="dock-tab-inner">
+          <svg class="dock-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="dock-tab-label">Identity &amp; RBAC</span>
+        </span>
+        <span class="dock-tab-badge ok" id="badge-rbac-nav">Admin</span>
+      </button>
 
       <button class="dock-tab" id="btn-audit" onclick="switchTab('audit')" title="Audit Trail &amp; Compliance" data-label="Audit Trail &amp; Compliance">
         <span class="dock-tab-inner">
@@ -1923,7 +1931,7 @@
 
     <!-- Sidebar Footer -->
     <div class="sidebar-footer">
-      <button class="sidebar-btn-deploy" onclick="toggleDeployModal(true)">
+      <button class="sidebar-btn-deploy" id="btn-sidebar-deploy" onclick="toggleDeployModal(true)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         <span>Deploy Endpoint</span>
       </button>
@@ -2012,7 +2020,11 @@
             </div>
 
             <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #1f2d47;padding-top:10px;">
-              <button class="btn-sm" style="width:100%;justify-content:flex-start;padding:6px 10px;" onclick="switchTab('audit');toggleUserDropdown();">
+              <button class="btn-sm" id="dd-btn-rbac" style="width:100%;justify-content:flex-start;padding:6px 10px;" onclick="switchTab('rbac');toggleUserDropdown();">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Identity &amp; RBAC Portal</span>
+              </button>
+              <button class="btn-sm" id="dd-btn-audit" style="width:100%;justify-content:flex-start;padding:6px 10px;" onclick="switchTab('audit');toggleUserDropdown();">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <span>Audit Trail &amp; Governance</span>
               </button>
@@ -2033,7 +2045,7 @@
           <span class="sep">&middot;</span>
           <span id="agents-active-hdr">2 active agents</span>
         </div>
-        <button class="btn-header-tool" onclick="switchTab('graph')" title="Launch Red Team Adversary Simulation">
+        <button class="btn-header-tool" id="btn-header-graph" onclick="switchTab('graph')" title="Launch Red Team Adversary Simulation">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <span>Red Team Lab</span>
         </button>
@@ -3458,6 +3470,149 @@
     </div>
   </div>
 
+  <!-- TAB 12: IDENTITY & ROLE-BASED ACCESS CONTROL (RBAC) -->
+  <div id="tab-rbac" style="display:none">
+    <!-- Top Header & Action Controls -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0;font-size:14px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Identity &amp; Role-Based Access Control (RBAC)</span>
+        </h3>
+        <span style="font-size:12px;color:var(--text-secondary)">Centralized identity directory, PBKDF2-HMAC-SHA256 credentials, HMAC cryptographic session tokens &amp; role boundaries</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-sm primary" onclick="toggleNewUserFormRbac()" style="background:#10b981;border-color:#059669;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <span>+ Create Operator Account</span>
+        </button>
+        <button class="btn-sm" onclick="loadUsersList()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span>Refresh Directory</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RBAC Directory HUD Metric Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-bottom:16px;">
+      <div class="card" style="padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Provisioned Operators</div>
+        <div style="font-size:24px;font-weight:800;color:#10b981;font-family:var(--mono);" id="rbac-total-users">3</div>
+        <div style="font-size:11px;color:var(--text-secondary);">Active identity records</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Administrators</div>
+        <div style="font-size:24px;font-weight:800;color:#10b981;font-family:var(--mono);" id="rbac-admin-count">1</div>
+        <div style="font-size:11px;color:var(--text-secondary);">Full system orchestration</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:4px solid #38bdf8;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">Detection Engineers</div>
+        <div style="font-size:24px;font-weight:800;color:#38bdf8;font-family:var(--mono);" id="rbac-engineer-count">1</div>
+        <div style="font-size:11px;color:var(--text-secondary);">Rules, Sigma &amp; Fleet</div>
+      </div>
+      <div class="card" style="padding:14px;border-left:4px solid #f59e0b;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;">SOC Analysts</div>
+        <div style="font-size:24px;font-weight:800;color:#f59e0b;font-family:var(--mono);" id="rbac-analyst-count">1</div>
+        <div style="font-size:11px;color:var(--text-secondary);">Triage, forensics &amp; notes</div>
+      </div>
+    </div>
+
+    <!-- Role Architecture & Capability Matrix -->
+    <div class="card" style="margin-bottom:16px;padding:16px;">
+      <h4 style="margin:0 0 10px;font-size:12.5px;font-weight:700;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.04em;">Enterprise Role Hierarchy &amp; Permission Boundaries</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;">
+        <div style="background:var(--surface);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11.5px;font-weight:700;color:#10b981;text-transform:uppercase;">Administrator (admin)</span>
+            <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;font-size:9.5px;">Level 3 &middot; Root</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--text-secondary);margin:0 0 8px;">Full administrative authority: Active Response containment, user provisioning, key rotation, cold archives, and backup generation.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">active_response</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">manage_users</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">rotate_keys</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">backup_restore</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">manage_retention</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#34d399;">view_audit</span>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid rgba(56,189,248,0.3);border-radius:8px;padding:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11.5px;font-weight:700;color:#38bdf8;text-transform:uppercase;">Detection Engineer (engineer)</span>
+            <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:9.5px;">Level 2 &middot; Engineering</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--text-secondary);margin:0 0 8px;">Detection engineering, Sigma conversion, agent fleet lifecycle, custom rule deployment, and MITRE ATT&amp;CK mapping.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">manage_rules</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">manage_agents</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">save_queries</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">manage_log_sources</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">view_data</span>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11.5px;font-weight:700;color:#f59e0b;text-transform:uppercase;">SOC Analyst (analyst)</span>
+            <span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;font-size:9.5px;">Level 1 &middot; Operations</span>
+          </div>
+          <p style="font-size:11.5px;color:var(--text-secondary);margin:0 0 8px;">Security operations monitoring, threat triage, incident investigation, forensics notes, and CERT-In report exports.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#f59e0b;">view_data</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#f59e0b;">triage_alerts</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#f59e0b;">add_notes</span>
+            <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#f59e0b;">export_reports</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Provisioning Form (Collapsible) -->
+    <div id="new-user-form-rbac" style="display:none;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <h4 style="margin:0 0 10px;font-size:13px;font-weight:700;color:#fff;">Provision New Operator Account</h4>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="nu-rbac-username" placeholder="Username (e.g. jdoe)" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:#fff;width:160px;">
+        <input type="password" id="nu-rbac-password" placeholder="Password (min 8 chars)" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:#fff;width:180px;">
+        <select id="nu-rbac-role" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:#fff;">
+          <option value="analyst">Analyst (Triage &amp; Notes)</option>
+          <option value="engineer">Engineer (Detection &amp; Fleet)</option>
+          <option value="admin">Administrator (Full Access)</option>
+        </select>
+        <button class="btn-sm primary" onclick="submitCreateUserRbac()" style="background:#10b981;border-color:#059669;padding:6px 14px;">Confirm &amp; Provision</button>
+        <button class="btn-sm" onclick="toggleNewUserFormRbac()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- User Directory Table Card -->
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+          <h4 style="margin:0;font-size:13px;font-weight:700;color:var(--text-primary);">Operator Directory &amp; Active Credentials</h4>
+          <span style="font-size:11px;color:var(--text-secondary);">Encrypted with per-user salt &amp; 100,000 PBKDF2 iterations</span>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table" style="width:100%;font-size:12px;">
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>Role</th>
+              <th>Granted Permissions</th>
+              <th>Provisioned Date</th>
+              <th>Last Active</th>
+              <th style="width:120px;text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rbac-users-tbody">
+            <tr><td colspan="6" class="empty">Loading operator directory...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
       <footer>
         <b>Kavalan SIEM</b> &middot; Distributed 4-Tier Security Architecture &middot; Dedicated AI Threat Defense &middot; Airgapped Local Engine
       </footer>
@@ -3489,7 +3644,13 @@ const fmtTime = iso => {
   } catch(e) { return iso; }
 };
 
-const VALID_TABS = ['sec', 'cases', 'ar', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest', 'audit'];
+const ROLE_ALLOWED_TABS = {
+  'admin': ['sec', 'cases', 'ar', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest', 'audit', 'rbac'],
+  'engineer': ['sec', 'cases', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest'],
+  'analyst': ['sec', 'cases', 'search', 'mitre', 'ai']
+};
+
+const VALID_TABS = ['sec', 'cases', 'ar', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest', 'audit', 'rbac'];
 let activeTab = 'sec';
 
 const TAB_TITLES = {
@@ -3505,7 +3666,8 @@ const TAB_TITLES = {
   'vuln': 'SCA Baseline & Vulnerability Management',
   'fim': 'File Integrity Monitoring (FIM)',
   'logtest': 'Detection Rule Studio · Sigma Engine & Logtest',
-  'audit': 'Tamper-Evident Audit Trail & CERT-In Compliance'
+  'audit': 'Tamper-Evident Audit Trail & CERT-In Compliance',
+  'rbac': 'Identity & Role-Based Access Control (RBAC)'
 };
 
 function isSidebarAutohide() {
@@ -3588,7 +3750,9 @@ setInterval(updateClock, 1000);
 updateClock();
 
 function switchTab(t, updateUrl = true){
-  if (!VALID_TABS.includes(t)) t = 'sec';
+  const role = (currentUser && currentUser.role ? currentUser.role : 'analyst').toLowerCase();
+  const allowed = (ROLE_ALLOWED_TABS[role] || ROLE_ALLOWED_TABS['analyst']);
+  if (!VALID_TABS.includes(t) || !allowed.includes(t)) t = 'sec';
   activeTab = t;
 
   try {
@@ -3630,6 +3794,7 @@ function switchTab(t, updateUrl = true){
   if(t === 'graph') { setupGraphInteractions(); loadAttackGraph(); setTimeout(resizeGraphCanvas, 50); }
   if(t === 'logtest') { loadCustomRules(); loadRuleTemplates(); }
   if(t === 'audit') { loadAuditAndCompliance(); }
+  if(t === 'rbac') { loadUsersList(); }
 
   if (isSidebarAutohide() || window.innerWidth <= 1024) {
     closeSidebar();
@@ -7049,14 +7214,57 @@ document.addEventListener('click', (e) => {
 
 // --- Dynamic RBAC UI Enforcement ---
 function applyRbacUiEnforcement() {
-  const role = (currentUser.role || 'analyst').toLowerCase();
+  const role = (currentUser && currentUser.role ? currentUser.role : 'analyst').toLowerCase();
   const isAdmin = role === 'admin';
   const isEngineer = role === 'engineer';
   const canAR = hasPermission('active_response');
   const canRules = hasPermission('manage_rules');
   const canUsers = isAdmin;
 
-  // Active Response Containment Button
+  // 1. Filter Sidebar Dock Navigation Tabs Strictly by Role
+  const allowedTabs = ROLE_ALLOWED_TABS[role] || ROLE_ALLOWED_TABS['analyst'];
+  VALID_TABS.forEach(tabId => {
+    const btn = $('btn-' + tabId);
+    if (btn) {
+      btn.style.display = allowedTabs.includes(tabId) ? 'flex' : 'none';
+    }
+  });
+
+  // 2. Hide / Show Sidebar Category Section Headers
+  const navPosture = $('nav-sec-posture');
+  if (navPosture) {
+    const hasPosture = allowedTabs.some(t => ['vuln', 'fim', 'logtest'].includes(t));
+    navPosture.style.display = hasPosture ? 'block' : 'none';
+  }
+
+  const navGovernance = $('nav-sec-governance');
+  if (navGovernance) {
+    const hasGov = allowedTabs.some(t => ['audit', 'rbac'].includes(t));
+    navGovernance.style.display = hasGov ? 'block' : 'none';
+  }
+
+  // 3. Header Action Buttons & Deploy Controls
+  const headerGraphBtn = $('btn-header-graph');
+  if (headerGraphBtn) {
+    headerGraphBtn.style.display = allowedTabs.includes('graph') ? 'inline-flex' : 'none';
+  }
+
+  const sidebarDeployBtn = $('btn-sidebar-deploy');
+  if (sidebarDeployBtn) {
+    sidebarDeployBtn.style.display = (isAdmin || isEngineer) ? 'flex' : 'none';
+  }
+
+  // 4. User Profile Dropdown RBAC / Audit Links
+  const ddRbacBtn = $('dd-btn-rbac');
+  if (ddRbacBtn) {
+    ddRbacBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+  const ddAuditBtn = $('dd-btn-audit');
+  if (ddAuditBtn) {
+    ddAuditBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+
+  // 5. Active Response Containment Button
   const arBtn = $('btn-execute-ar');
   if (arBtn) {
     if (!canAR) {
@@ -7072,7 +7280,7 @@ function applyRbacUiEnforcement() {
     }
   }
 
-  // Rules Deploy Button in Sigma Studio
+  // 6. Rules Deploy Button in Sigma Studio
   const ruleBtn = $('btn-save-sigma-rule');
   if (ruleBtn) {
     if (!canRules) {
@@ -7088,7 +7296,7 @@ function applyRbacUiEnforcement() {
     }
   }
 
-  // Add User Account Button in Governance
+  // 7. Add User Account Button in Governance
   const addUserBtn = $('btn-add-user');
   if (addUserBtn) {
     if (!canUsers) {
@@ -7104,7 +7312,7 @@ function applyRbacUiEnforcement() {
     }
   }
 
-  // Cold Archive / Backup Buttons in Governance
+  // 8. Cold Archive / Backup Buttons in Governance
   const archiveBtn = $('btn-run-archive');
   if (archiveBtn) {
     if (!isAdmin) {
@@ -7133,6 +7341,11 @@ function applyRbacUiEnforcement() {
       backupBtn.style.cursor = 'pointer';
       backupBtn.title = 'Export signed system backup manifest';
     }
+  }
+
+  // 9. If current active tab is unauthorized for this role, bounce back to 'sec'
+  if (!allowedTabs.includes(activeTab)) {
+    switchTab('sec');
   }
 }
 
@@ -7575,27 +7788,113 @@ async function runRetentionBackup() {
 
 // --- RBAC Users Management ---
 async function loadUsersList() {
-  const tbody = $('users-tbody');
-  if (!tbody) return;
+  const tbodyRbac = $('rbac-users-tbody');
+  const tbodyAudit = $('users-tbody');
   try {
     const res = await fetch('/api/users');
     if (!res.ok) return;
     const d = await res.json();
     const users = d.users || [];
     const isAdmin = currentUser.role === 'admin';
-    tbody.innerHTML = users.map(u => `
-      <tr>
-        <td><b>${esc(u.username)}</b></td>
-        <td><span style="font-size:10px;text-transform:uppercase;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-subtle);">${esc(u.role)}</span></td>
-        <td style="font-size:11px;color:var(--text-secondary);">${esc((u.permissions || []).join(', '))}</td>
-        <td class="mono" style="font-size:11px;">${fmtTime(u.created_at)}</td>
-        <td class="mono" style="font-size:11px;">${u.last_login ? fmtTime(u.last_login) : 'Never'}</td>
-        <td>
-          ${isAdmin && u.username !== 'admin' ? `<button class="btn-sm" style="color:var(--crit);padding:2px 6px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : (u.username === 'admin' ? '<span style="color:var(--text-tertiary);font-size:10.5px;">Permanent</span>' : '<span style="color:var(--text-tertiary);font-size:10.5px;">Protected</span>')}
-        </td>
-      </tr>
-    `).join('');
+
+    // Update HUD counters in RBAC tab
+    const totEl = $('rbac-total-users');
+    const admEl = $('rbac-admin-count');
+    const engEl = $('rbac-engineer-count');
+    const anaEl = $('rbac-analyst-count');
+    if (totEl) totEl.textContent = users.length;
+    if (admEl) admEl.textContent = users.filter(u => u.role === 'admin').length;
+    if (engEl) engEl.textContent = users.filter(u => u.role === 'engineer').length;
+    if (anaEl) anaEl.textContent = users.filter(u => u.role === 'analyst').length;
+
+    // Render in dedicated RBAC tab
+    if (tbodyRbac) {
+      tbodyRbac.innerHTML = users.map(u => {
+        const initials = (u.username || 'OP').slice(0, 2).toUpperCase();
+        const roleColor = u.role === 'admin' ? '#10b981' : u.role === 'engineer' ? '#38bdf8' : '#f59e0b';
+        const roleBg = u.role === 'admin' ? 'rgba(16,185,129,0.15)' : u.role === 'engineer' ? 'rgba(56,189,248,0.15)' : 'rgba(245,158,11,0.15)';
+        const permsHtml = (u.permissions || []).map(p => `<span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#94a3b8;margin-right:4px;margin-bottom:3px;display:inline-block;border:1px solid #334155;">${esc(p)}</span>`).join('');
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:${roleColor};color:#000;font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px ${roleColor}40;">${initials}</div>
+                <div>
+                  <div style="font-weight:700;color:#fff;font-size:12.5px;">${esc(u.username)}</div>
+                  <div style="font-size:10.5px;color:var(--text-tertiary);">${esc(u.username)}@kavalan.internal</div>
+                </div>
+              </div>
+            </td>
+            <td><span style="font-size:10px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:4px;background:${roleBg};color:${roleColor};border:1px solid ${roleColor}40;">${esc(u.role)}</span></td>
+            <td style="max-width:340px;">${permsHtml || '<span style="color:var(--text-tertiary);">Default role permissions</span>'}</td>
+            <td class="mono" style="font-size:11px;">${fmtTime(u.created_at)}</td>
+            <td class="mono" style="font-size:11px;">${u.last_login ? fmtTime(u.last_login) : '<span style="color:var(--text-tertiary);">Never</span>'}</td>
+            <td style="text-align:right;">
+              ${isAdmin && u.username !== 'admin' ? `<button class="btn-sm danger" style="padding:3px 10px;font-size:11px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : (u.username === 'admin' ? '<span style="color:var(--text-tertiary);font-size:10.5px;font-weight:600;">System Protected</span>' : '<span style="color:var(--text-tertiary);font-size:10.5px;">Protected</span>')}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render in tab-audit
+    if (tbodyAudit) {
+      tbodyAudit.innerHTML = users.map(u => `
+        <tr>
+          <td><b>${esc(u.username)}</b></td>
+          <td><span style="font-size:10px;text-transform:uppercase;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-subtle);">${esc(u.role)}</span></td>
+          <td style="font-size:11px;color:var(--text-secondary);">${esc((u.permissions || []).join(', '))}</td>
+          <td class="mono" style="font-size:11px;">${fmtTime(u.created_at)}</td>
+          <td class="mono" style="font-size:11px;">${u.last_login ? fmtTime(u.last_login) : 'Never'}</td>
+          <td>
+            ${isAdmin && u.username !== 'admin' ? `<button class="btn-sm" style="color:var(--crit);padding:2px 6px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : (u.username === 'admin' ? '<span style="color:var(--text-tertiary);font-size:10.5px;">Permanent</span>' : '<span style="color:var(--text-tertiary);font-size:10.5px;">Protected</span>')}
+          </td>
+        </tr>
+      `).join('');
+    }
   } catch(e) {}
+}
+
+function toggleNewUserFormRbac() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator role is required to manage user accounts.');
+    return;
+  }
+  const form = $('new-user-form-rbac');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitCreateUserRbac() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator role is required to create user accounts.');
+    return;
+  }
+  const u = ($('nu-rbac-username').value || '').trim();
+  const p = $('nu-rbac-password').value;
+  const r = $('nu-rbac-role').value;
+  if (!u || !p) {
+    alert('Please enter username and password');
+    return;
+  }
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p, role: r })
+    });
+    if (res.ok) {
+      alert(`Operator account "${u}" (${r.toUpperCase()}) created successfully!`);
+      $('nu-rbac-username').value = '';
+      $('nu-rbac-password').value = '';
+      toggleNewUserFormRbac();
+      loadUsersList();
+    } else {
+      const d = await res.json();
+      alert('Error: ' + (d.error || 'Failed to create user'));
+    }
+  } catch(err) {
+    alert('Failed: ' + err.message);
+  }
 }
 
 function toggleNewUserForm() {
