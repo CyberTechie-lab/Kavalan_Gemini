@@ -46,7 +46,7 @@ from ai.ai_analyst import AIAttackAnalyst
 from gemini.service import GeminiAIService
 from sec_llm.service import SecLLMService
 from vuln_scanner import VulnerabilityEngine
-from auth import AuthManager
+from auth import AuthManager, ROLES
 from audit import AuditLogger
 from security import AgentSecurityManager
 from quiet_source_monitor import QuietSourceMonitor
@@ -2051,21 +2051,30 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
     async def get_me_api(request: Request):
         user = get_current_user(request)
         if not user:
-            # Fallback to default admin for local dev if unauthenticated
-            return JSONResponse(content={"username": "admin", "role": "admin", "permissions": ["all"]})
-        return JSONResponse(content=user)
+            return JSONResponse(status_code=401, content={"error": "Not authenticated"})
+        username = user.get("sub") or user.get("username", "anonymous")
+        role = user.get("role", "analyst")
+        permissions = list(ROLES.get(role, {}).get("permissions", []))
+        return JSONResponse(content={
+            "username": username,
+            "role": role,
+            "permissions": permissions,
+            "exp": user.get("exp"),
+            "iat": user.get("iat")
+        })
 
     @app.post("/api/auth/logout")
     async def logout_api(request: Request):
         user = get_current_user(request)
-        if user:
-            mgr.audit.log(
-                username=user["username"],
-                role=user["role"],
-                action="logout",
-                resource_type="auth",
-                outcome="success"
-            )
+        username = (user.get("sub") or user.get("username", "anonymous")) if user else "anonymous"
+        role = user.get("role", "unknown") if user else "unknown"
+        mgr.audit.log(
+            username=username,
+            role=role,
+            action="logout",
+            resource_type="auth",
+            outcome="success"
+        )
         return JSONResponse(content={"status": "ok"})
 
     @app.get("/api/users")

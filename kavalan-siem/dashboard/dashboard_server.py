@@ -27,6 +27,8 @@ import uvicorn
 
 CURRENT_DIR = Path(__file__).resolve().parent
 HTML_PATH = CURRENT_DIR / "static" / "index.html"
+LOGIN_PATH = CURRENT_DIR / "static" / "login.html"
+LOGOUT_PATH = CURRENT_DIR / "static" / "logout.html"
 STATIC_DIR = CURRENT_DIR / "static"
 
 
@@ -450,6 +452,22 @@ def create_dashboard_app(backend: DashboardBackend) -> FastAPI:
         resp.headers["Expires"] = "0"
         return resp
 
+    @app.get("/login")
+    async def login_page():
+        if not LOGIN_PATH.exists():
+            return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
+        resp = HTMLResponse(content=LOGIN_PATH.read_text(encoding="utf-8"))
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        return resp
+
+    @app.get("/logout")
+    async def logout_page():
+        if not LOGOUT_PATH.exists():
+            return HTMLResponse(content="<h1>Logout page not found</h1>", status_code=404)
+        resp = HTMLResponse(content=LOGOUT_PATH.read_text(encoding="utf-8"))
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        return resp
+
     @app.get("/api/state")
     async def state_api():
         mgr_state = backend.get_manager_state()
@@ -844,7 +862,9 @@ def create_dashboard_app(backend: DashboardBackend) -> FastAPI:
             body = await request.json()
         except Exception:
             body = {}
-        return JSONResponse(content=backend.post_manager("/api/auth/login", body))
+        res = backend.post_manager("/api/auth/login", body)
+        code = 401 if ("error" in res or "detail" in res) else 200
+        return JSONResponse(content=res, status_code=code)
 
     @app.get("/api/auth/me")
     async def get_auth_me_proxy(request: Request):
@@ -855,8 +875,14 @@ def create_dashboard_app(backend: DashboardBackend) -> FastAPI:
         try:
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 return JSONResponse(content=json.loads(resp.read().decode("utf-8")))
+        except urllib.error.HTTPError as e:
+            try:
+                err_data = json.loads(e.read().decode("utf-8"))
+            except Exception:
+                err_data = {"error": "Unauthorized"}
+            return JSONResponse(status_code=e.code, content=err_data)
         except Exception:
-            return JSONResponse(content={"username": "admin", "role": "admin", "permissions": ["all"]})
+            return JSONResponse(status_code=401, content={"error": "Not authenticated"})
 
     @app.post("/api/auth/logout")
     async def logout_proxy(request: Request):

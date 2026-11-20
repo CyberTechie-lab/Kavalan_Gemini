@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Terminated &middot; Kavalan Sentinel</title>
+  <link rel="icon" type="image/svg+xml" href="/static/kavalan_logo_mark.svg">
+  <style>
+    :root {
+      --bg: #030712;
+      --bg-panel: #0b1120;
+      --bg-surface: #111827;
+      --border: #1f2937;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-tertiary: #64748b;
+      --ok: #10b981;
+      --ok-glow: rgba(16, 185, 129, 0.2);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 48px 48px, 48px 48px;
+    }
+
+    .logout-card {
+      width: 100%;
+      max-width: 480px;
+      margin: 20px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .status-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--ok-glow);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--ok);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .security-audit-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: left;
+      font-size: 11.5px;
+      margin-bottom: 24px;
+      color: var(--text-secondary);
+    }
+
+    .audit-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .audit-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .audit-row .val {
+      font-family: var(--mono);
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .btn-relogin {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-relogin:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+    }
+
+    .countdown {
+      margin-top: 16px;
+      font-size: 11.5px;
+      color: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logout-card">
+    <div class="status-icon-wrap">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+
+    <h1>Session Terminated Securely</h1>
+    <p>Your workstation credentials and cryptographic session tokens have been invalidated from the Central Manager.</p>
+
+    <div class="security-audit-box">
+      <div class="audit-row">
+        <span>Session State:</span>
+        <span class="val" style="color:var(--ok);">REVOKED &middot; CLOSED</span>
+      </div>
+      <div class="audit-row">
+        <span>Audit Trail:</span>
+        <span class="val">Event Logged (ID #92)</span>
+      </div>
+      <div class="audit-row">
+        <span>Security Engine:</span>
+        <span class="val">Kavalan Sentinel 2.0</span>
+      </div>
+    </div>
+
+    <a href="/login" class="btn-relogin">
+      <span>Return to Sign In</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+
+    <div class="countdown" id="countdown-text">
+      Redirecting to login portal in <span id="secs">5</span>s...
+    </div>
+  </div>
+
+  <script>
+    // Clear local authentication tokens
+    try {
+      localStorage.removeItem('kavalan_session_token');
+      localStorage.removeItem('kavalan_user');
+    } catch(e) {}
+
+    // Auto-countdown
+    let secondsLeft = 5;
+    const interval = setInterval(() => {
+      secondsLeft--;
+      const el = document.getElementById('secs');
+      if (el) el.textContent = secondsLeft;
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        window.location.href = '/login';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

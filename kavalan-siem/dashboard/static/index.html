@@ -1986,9 +1986,46 @@
       </div>
 
       <div class="top-header-right">
-        <div class="user-auth-badge" id="user-badge-container" onclick="openAuthModal()" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;cursor:pointer;" title="Click to view/switch user accounts">
-          <span id="user-badge-role" style="font-size:9.5px;text-transform:uppercase;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(16,185,129,0.15);color:#10b981;">ADMIN</span>
-          <span id="user-badge-name" style="font-weight:600;color:var(--text-primary);">admin</span>
+        <!-- Enterprise User Profile Widget & Dropdown Menu -->
+        <div class="user-profile-widget" style="position:relative;">
+          <button class="user-profile-btn" id="user-profile-btn" onclick="toggleUserDropdown(event)" style="display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:inherit;cursor:pointer;font-family:inherit;">
+            <div id="user-avatar" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #0284c7, #2563eb);color:#fff;font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center;">AD</div>
+            <div style="text-align:left;line-height:1.2;">
+              <div id="user-badge-name" style="font-weight:700;font-size:11.5px;color:var(--text-primary);">admin</div>
+              <div id="user-badge-role" style="font-size:9px;text-transform:uppercase;font-weight:700;color:#10b981;">ADMINISTRATOR</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <!-- Dropdown Popover -->
+          <div class="user-dropdown-menu" id="user-dropdown-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:280px;background:#0d1527;border:1px solid #1f2d47;border-radius:10px;box-shadow:0 20px 40px rgba(0,0,0,0.6);z-index:9999;padding:12px;font-size:12px;">
+            <div style="border-bottom:1px solid #1f2d47;padding-bottom:10px;margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:700;color:#fff;" id="dd-username">admin</div>
+              <div style="font-size:11px;color:#94a3b8;" id="dd-email">admin@kavalan.internal &middot; Enterprise SOC</div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:0.04em;margin-bottom:6px;">RBAC Capabilities</div>
+              <div id="dd-permissions-list" style="display:flex;flex-wrap:wrap;gap:4px;max-height:80px;overflow-y:auto;">
+                <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#38bdf8;">Full Orchestration</span>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #1f2d47;padding-top:10px;">
+              <button class="btn-sm" style="width:100%;justify-content:flex-start;padding:6px 10px;" onclick="switchTab('audit');toggleUserDropdown();">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Audit Trail &amp; Governance</span>
+              </button>
+              <button class="btn-sm" style="width:100%;justify-content:flex-start;padding:6px 10px;" onclick="openAuthModal();toggleUserDropdown();">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                <span>Switch Role / Account</span>
+              </button>
+              <button class="btn-sm" style="width:100%;justify-content:flex-start;padding:6px 10px;color:#ef4444;border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);" onclick="performEnterpriseLogout()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Sign Out &amp; Lock Console</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="live-pill">
           <span class="dot" id="dot"></span>
@@ -2629,7 +2666,7 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span>Convert Sigma to CEM</span>
           </button>
-          <button class="btn-sm" onclick="saveCurrentRule()" style="background:#10b981;color:#fff;border:none;padding:6px 14px;font-size:11.5px;display:flex;align-items:center;gap:5px;">
+          <button class="btn-sm" id="btn-save-sigma-rule" onclick="saveCurrentRule()" style="background:#10b981;color:#fff;border:none;padding:6px 14px;font-size:11.5px;display:flex;align-items:center;gap:5px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             <span>Save &amp; Deploy Rule</span>
           </button>
@@ -3021,7 +3058,7 @@
           <option value="all">Fleetwide Broadcast (All Agents)</option>
         </select>
         <input type="number" id="manual-ar-timeout" value="600" title="Timeout seconds before auto-unblock (0 for permanent)" style="width:80px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:12px;" placeholder="Timeout(s)">
-        <button class="btn-sm danger" onclick="dispatchManualAr()">⚡ Execute Containment</button>
+        <button class="btn-sm danger" id="btn-execute-ar" onclick="dispatchManualAr()">⚡ Execute Containment</button>
       </div>
       <div id="manual-ar-msg" style="margin-top:8px;font-size:11.5px;display:none;"></div>
     </div>
@@ -3321,8 +3358,8 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="btn-sm" onclick="verifyHashChainIntegrity()" style="background:#0284c7;color:#fff;border-color:#0369a1;">🔒 Verify Storage Hash-Chain</button>
-        <button class="btn-sm" onclick="runColdArchive()">📦 Run Cold Archive</button>
-        <button class="btn-sm" onclick="runRetentionBackup()">💾 Export System Backup</button>
+        <button class="btn-sm" id="btn-run-archive" onclick="runColdArchive()">📦 Run Cold Archive</button>
+        <button class="btn-sm" id="btn-run-backup" onclick="runRetentionBackup()">💾 Export System Backup</button>
         <button class="btn-sm" onclick="loadAuditAndCompliance()">⟳ Refresh</button>
       </div>
     </div>
@@ -3384,7 +3421,7 @@
           <span style="font-size:12px;font-weight:700;color:var(--text-primary);text-transform:uppercase;">RBAC User Accounts &amp; Access Controls</span>
           <span style="font-size:11px;color:var(--text-secondary);display:block;">Role hierarchy: Analyst (Triage), Engineer (Detection &amp; Fleet), Admin (Full Control &amp; Key Rotation)</span>
         </div>
-        <button class="btn-sm primary" onclick="toggleNewUserForm()">+ Add User Account</button>
+        <button class="btn-sm primary" id="btn-add-user" onclick="toggleNewUserForm()">+ Add User Account</button>
       </div>
 
       <div id="new-user-form" style="display:none;background:var(--surface-subtle);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px;">
@@ -3897,6 +3934,10 @@ async function convertSigmaYaml(showAlert = true) {
 }
 
 async function saveCurrentRule() {
+  if (!hasPermission('manage_rules')) {
+    alert('Access Denied: Detection Engineer or Administrator privilege is required to deploy detection rules.');
+    return;
+  }
   const editor = $('sigma-yaml-input');
   if (!editor || !editor.value.trim()) {
     alert('Please enter or paste a Sigma rule first.');
@@ -4720,6 +4761,10 @@ async function loadActiveResponses() {
 }
 
 async function dispatchManualAr() {
+  if (!hasPermission('active_response')) {
+    alert('Access Denied: Administrator role is required to dispatch Active Response containment orders.');
+    return;
+  }
   const action = $('manual-ar-action').value;
   const target = $('manual-ar-target').value.trim();
   const agent = $('manual-ar-agent').value;
@@ -6976,16 +7021,156 @@ let currentUser = { username: 'admin', role: 'admin', permissions: ['all'] };
 let cachedAuditLogs = [];
 let currentViewingCaseId = null;
 
+// --- RBAC Permission Helper ---
+function hasPermission(perm) {
+  if (!currentUser) return false;
+  if (currentUser.role === 'admin') return true;
+  const perms = currentUser.permissions || [];
+  return perms.includes('all') || perms.includes(perm);
+}
+
+// --- Enterprise User Dropdown Popover ---
+function toggleUserDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = $('user-dropdown-menu');
+  if (!menu) return;
+  menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+
+document.addEventListener('click', (e) => {
+  const widget = document.querySelector('.user-profile-widget');
+  const menu = $('user-dropdown-menu');
+  if (menu && menu.style.display === 'block') {
+    if (!widget || !widget.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  }
+});
+
+// --- Dynamic RBAC UI Enforcement ---
+function applyRbacUiEnforcement() {
+  const role = (currentUser.role || 'analyst').toLowerCase();
+  const isAdmin = role === 'admin';
+  const isEngineer = role === 'engineer';
+  const canAR = hasPermission('active_response');
+  const canRules = hasPermission('manage_rules');
+  const canUsers = isAdmin;
+
+  // Active Response Containment Button
+  const arBtn = $('btn-execute-ar');
+  if (arBtn) {
+    if (!canAR) {
+      arBtn.disabled = true;
+      arBtn.style.opacity = '0.35';
+      arBtn.style.cursor = 'not-allowed';
+      arBtn.title = 'Access Denied: Requires Administrator role for Active Response containment orders';
+    } else {
+      arBtn.disabled = false;
+      arBtn.style.opacity = '1';
+      arBtn.style.cursor = 'pointer';
+      arBtn.title = 'Execute containment action';
+    }
+  }
+
+  // Rules Deploy Button in Sigma Studio
+  const ruleBtn = $('btn-save-sigma-rule');
+  if (ruleBtn) {
+    if (!canRules) {
+      ruleBtn.disabled = true;
+      ruleBtn.style.opacity = '0.35';
+      ruleBtn.style.cursor = 'not-allowed';
+      ruleBtn.title = 'Access Denied: Requires Detection Engineer or Administrator privilege';
+    } else {
+      ruleBtn.disabled = false;
+      ruleBtn.style.opacity = '1';
+      ruleBtn.style.cursor = 'pointer';
+      ruleBtn.title = 'Save and deploy rule';
+    }
+  }
+
+  // Add User Account Button in Governance
+  const addUserBtn = $('btn-add-user');
+  if (addUserBtn) {
+    if (!canUsers) {
+      addUserBtn.disabled = true;
+      addUserBtn.style.opacity = '0.35';
+      addUserBtn.style.cursor = 'not-allowed';
+      addUserBtn.title = 'Access Denied: Requires Administrator privilege';
+    } else {
+      addUserBtn.disabled = false;
+      addUserBtn.style.opacity = '1';
+      addUserBtn.style.cursor = 'pointer';
+      addUserBtn.title = 'Add new user account';
+    }
+  }
+
+  // Cold Archive / Backup Buttons in Governance
+  const archiveBtn = $('btn-run-archive');
+  if (archiveBtn) {
+    if (!isAdmin) {
+      archiveBtn.disabled = true;
+      archiveBtn.style.opacity = '0.35';
+      archiveBtn.style.cursor = 'not-allowed';
+      archiveBtn.title = 'Access Denied: Requires Administrator privilege';
+    } else {
+      archiveBtn.disabled = false;
+      archiveBtn.style.opacity = '1';
+      archiveBtn.style.cursor = 'pointer';
+      archiveBtn.title = 'Run cold compression pass';
+    }
+  }
+
+  const backupBtn = $('btn-run-backup');
+  if (backupBtn) {
+    if (!isAdmin) {
+      backupBtn.disabled = true;
+      backupBtn.style.opacity = '0.35';
+      backupBtn.style.cursor = 'not-allowed';
+      backupBtn.title = 'Access Denied: Requires Administrator privilege';
+    } else {
+      backupBtn.disabled = false;
+      backupBtn.style.opacity = '1';
+      backupBtn.style.cursor = 'pointer';
+      backupBtn.title = 'Export signed system backup manifest';
+    }
+  }
+}
+
 // --- Authentication & User Session Management ---
 async function checkCurrentUser() {
+  const token = localStorage.getItem('kavalan_session_token');
+  const cachedUser = localStorage.getItem('kavalan_user');
+
+  if (!token) {
+    // Redirect to enterprise login portal
+    window.location.href = '/login';
+    return;
+  }
+
+  if (cachedUser) {
+    try {
+      currentUser = JSON.parse(cachedUser);
+      updateUserUI();
+      applyRbacUiEnforcement();
+    } catch(e) {}
+  }
+
   try {
-    const res = await fetch('/api/auth/me');
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (res.ok) {
       const u = await res.json();
       if (u && u.username) {
         currentUser = u;
+        localStorage.setItem('kavalan_user', JSON.stringify(u));
         updateUserUI();
+        applyRbacUiEnforcement();
       }
+    } else if (res.status === 401) {
+      localStorage.removeItem('kavalan_session_token');
+      localStorage.removeItem('kavalan_user');
+      window.location.href = '/login';
     }
   } catch(e) {}
 }
@@ -6993,20 +7178,59 @@ async function checkCurrentUser() {
 function updateUserUI() {
   const roleEl = $('user-badge-role');
   const nameEl = $('user-badge-name');
-  if (roleEl) {
-    roleEl.textContent = (currentUser.role || 'ANALYST').toUpperCase();
-    if (currentUser.role === 'admin') {
-      roleEl.style.color = '#10b981';
-      roleEl.style.background = 'rgba(16,185,129,0.15)';
-    } else if (currentUser.role === 'engineer') {
-      roleEl.style.color = '#3b82f6';
-      roleEl.style.background = 'rgba(59,130,246,0.15)';
+  const avatarEl = $('user-avatar');
+  const ddUsernameEl = $('dd-username');
+  const ddEmailEl = $('dd-email');
+  const ddPermsEl = $('dd-permissions-list');
+
+  const role = (currentUser.role || 'analyst').toLowerCase();
+  const username = currentUser.username || 'analyst';
+
+  // Initials avatar & colors
+  if (avatarEl) {
+    const initials = username.slice(0, 2).toUpperCase();
+    avatarEl.textContent = initials;
+    if (role === 'admin') {
+      avatarEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    } else if (role === 'engineer') {
+      avatarEl.style.background = 'linear-gradient(135deg, #0284c7, #2563eb)';
     } else {
-      roleEl.style.color = '#f59e0b';
-      roleEl.style.background = 'rgba(245,158,11,0.15)';
+      avatarEl.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
     }
   }
-  if (nameEl) nameEl.textContent = currentUser.username || 'admin';
+
+  if (nameEl) nameEl.textContent = username;
+  if (ddUsernameEl) ddUsernameEl.textContent = username;
+  if (ddEmailEl) ddEmailEl.textContent = `${username}@kavalan.internal · Enterprise SOC`;
+
+  if (roleEl) {
+    if (role === 'admin') {
+      roleEl.textContent = 'ADMINISTRATOR';
+      roleEl.style.color = '#10b981';
+      roleEl.style.background = 'transparent';
+    } else if (role === 'engineer') {
+      roleEl.textContent = 'DETECTION ENG';
+      roleEl.style.color = '#38bdf8';
+      roleEl.style.background = 'transparent';
+    } else {
+      roleEl.textContent = 'SOC ANALYST';
+      roleEl.style.color = '#f59e0b';
+      roleEl.style.background = 'transparent';
+    }
+  }
+
+  // Populate permissions chips in dropdown popover
+  if (ddPermsEl) {
+    const perms = currentUser.permissions || [];
+    if (role === 'admin' || perms.includes('all')) {
+      ddPermsEl.innerHTML = `<span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.15);color:#34d399;font-weight:600;border:1px solid rgba(16,185,129,0.3);">Full System Orchestration</span>`;
+    } else {
+      ddPermsEl.innerHTML = perms.map(p => {
+        let label = p.replace(/_/g, ' ');
+        return `<span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:#1e293b;color:#94a3b8;font-weight:500;border:1px solid #334155;">${label}</span>`;
+      }).join('');
+    }
+  }
 }
 
 function openAuthModal() {
@@ -7039,13 +7263,20 @@ async function loginUser() {
       body: JSON.stringify({ username: u, password: p })
     });
     const data = await res.json();
-    if (!res.ok) {
+    if (!res.ok || data.error) {
       errEl.textContent = data.error || 'Login failed.';
       errEl.style.display = 'block';
       return;
     }
     currentUser = data;
+    if (data.token) localStorage.setItem('kavalan_session_token', data.token);
+    localStorage.setItem('kavalan_user', JSON.stringify({
+      username: data.username,
+      role: data.role,
+      permissions: data.permissions || []
+    }));
     updateUserUI();
+    applyRbacUiEnforcement();
     closeAuthModal();
     if (activeTab === 'audit') loadAuditAndCompliance();
   } catch(err) {
@@ -7054,14 +7285,24 @@ async function loginUser() {
   }
 }
 
-async function logoutUser() {
+async function performEnterpriseLogout() {
+  const token = localStorage.getItem('kavalan_session_token');
   try {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
   } catch(e) {}
-  currentUser = { username: 'analyst', role: 'analyst', permissions: ['view_data'] };
-  updateUserUI();
-  closeAuthModal();
-  if (activeTab === 'audit') loadAuditAndCompliance();
+  localStorage.removeItem('kavalan_session_token');
+  localStorage.removeItem('kavalan_user');
+  window.location.href = '/logout';
+}
+
+async function logoutUser() {
+  await performEnterpriseLogout();
 }
 
 // --- Ingestion Telemetry & Dead-Man Switch HUD ---
@@ -7304,6 +7545,10 @@ async function loadRetentionStatus() {
 }
 
 async function runColdArchive() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator privilege is required to trigger cold log archives.');
+    return;
+  }
   try {
     const res = await fetch('/api/retention/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const d = await res.json();
@@ -7315,6 +7560,10 @@ async function runColdArchive() {
 }
 
 async function runRetentionBackup() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator privilege is required to trigger system backups.');
+    return;
+  }
   try {
     const res = await fetch('/api/retention/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
     const d = await res.json();
@@ -7333,6 +7582,7 @@ async function loadUsersList() {
     if (!res.ok) return;
     const d = await res.json();
     const users = d.users || [];
+    const isAdmin = currentUser.role === 'admin';
     tbody.innerHTML = users.map(u => `
       <tr>
         <td><b>${esc(u.username)}</b></td>
@@ -7341,7 +7591,7 @@ async function loadUsersList() {
         <td class="mono" style="font-size:11px;">${fmtTime(u.created_at)}</td>
         <td class="mono" style="font-size:11px;">${u.last_login ? fmtTime(u.last_login) : 'Never'}</td>
         <td>
-          ${u.username !== 'admin' ? `<button class="btn-sm" style="color:var(--crit);padding:2px 6px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : '<span style="color:var(--text-tertiary);font-size:10.5px;">Permanent</span>'}
+          ${isAdmin && u.username !== 'admin' ? `<button class="btn-sm" style="color:var(--crit);padding:2px 6px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : (u.username === 'admin' ? '<span style="color:var(--text-tertiary);font-size:10.5px;">Permanent</span>' : '<span style="color:var(--text-tertiary);font-size:10.5px;">Protected</span>')}
         </td>
       </tr>
     `).join('');
@@ -7349,11 +7599,19 @@ async function loadUsersList() {
 }
 
 function toggleNewUserForm() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator role is required to manage user accounts.');
+    return;
+  }
   const form = $('new-user-form');
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
 async function submitCreateUser() {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator role is required to create user accounts.');
+    return;
+  }
   const u = ($('nu-username').value || '').trim();
   const p = $('nu-password').value;
   const r = $('nu-role').value;
@@ -7381,6 +7639,10 @@ async function submitCreateUser() {
 }
 
 async function deleteUserAccount(username) {
+  if (currentUser.role !== 'admin') {
+    alert('Access Denied: Administrator role is required to delete accounts.');
+    return;
+  }
   if (!confirm(`Delete user account "${username}"?`)) return;
   try {
     const res = await fetch(`/api/users/${username}`, { method: 'DELETE' });
@@ -7435,6 +7697,5 @@ setInterval(pollFleetTelemetry, 5000);
     </div>
   </div>
 </div>
-</script>
 </body>
 </html>

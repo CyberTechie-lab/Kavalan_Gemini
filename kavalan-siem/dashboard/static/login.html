@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In &middot; Kavalan Sentinel Enterprise SOC</title>
+  <link rel="icon" type="image/svg+xml" href="/static/kavalan_logo_mark.svg">
+  <style>
+    :root {
+      --bg: #030712;
+      --bg-panel: #0b1120;
+      --bg-surface: #111827;
+      --bg-subtle: #1e293b;
+      --border: #1f2937;
+      --border-focus: #38bdf8;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-tertiary: #64748b;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --ok: #10b981;
+      --ok-bg: rgba(16, 185, 129, 0.12);
+      --crit: #ef4444;
+      --crit-bg: rgba(239, 68, 68, 0.12);
+      --high: #f97316;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(2, 132, 199, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(124, 58, 237, 0.10) 0%, transparent 45%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+      overflow-x: hidden;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 1080px;
+      min-height: 620px;
+      margin: 24px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Left Enterprise Telemetry Panel */
+    .telemetry-panel {
+      background: linear-gradient(145deg, #070d18 0%, #0c1527 100%);
+      padding: 48px 40px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .telemetry-panel::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .telemetry-showcase {
+      margin: 36px 0;
+    }
+
+    .hero-heading {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      color: #f1f5f9;
+    }
+
+    .hero-heading span {
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .security-badges {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .security-badge-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+
+    .badge-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .badge-content h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 2px;
+    }
+
+    .badge-content p {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      line-height: 1.4;
+    }
+
+    .platform-status-ticker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 8px var(--ok);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Right Login Form Panel */
+    .form-panel {
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--bg-panel);
+    }
+
+    .form-header {
+      margin-bottom: 28px;
+    }
+
+    .form-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .form-header p {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .alert-banner {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-banner.error {
+      background: var(--crit-bg);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .alert-banner.info {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #7dd3fc;
+    }
+
+    .input-group {
+      margin-bottom: 18px;
+    }
+
+    .input-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-tertiary);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 44px;
+      padding: 10px 40px 10px 38px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: #141e33;
+    }
+
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+
+    .toggle-pwd-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s ease;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Role Presets Demo Selector */
+    .role-presets-box {
+      margin-top: 24px;
+      padding: 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .role-presets-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .role-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .role-btn {
+      background: var(--bg-subtle);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      padding: 8px 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .role-btn:hover {
+      background: #25334d;
+      border-color: var(--border-focus);
+    }
+
+    .role-btn .role-tag {
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .role-btn .role-desc {
+      font-size: 9.5px;
+      color: var(--text-tertiary);
+    }
+
+    .role-btn.active {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .role-btn.active .role-desc {
+      color: #bae6fd;
+    }
+
+    .security-assurance-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .security-assurance-footer svg {
+      color: var(--ok);
+    }
+
+    @media (max-width: 860px) {
+      .login-container {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        min-height: auto;
+      }
+      .telemetry-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <!-- Left: Enterprise SOC Telemetry & Defense Posture -->
+    <div class="telemetry-panel">
+      <div class="brand-header">
+        <img class="brand-logo" src="/static/kavalan_logo_mark.svg" alt="Kavalan Sentinel Shield Logo">
+        <div>
+          <div class="brand-title">KAVALAN SENTINEL</div>
+          <div class="brand-subtitle">Autonomous AI-Secured SIEM</div>
+        </div>
+      </div>
+
+      <div class="telemetry-showcase">
+        <h1 class="hero-heading">Next-Gen Enterprise <span>SOC Operations</span></h1>
+        <p class="hero-desc">
+          Continuous deterministic behavioral threat detection, automated SOAR playbooks, and tamper-evident audit governance with sub-millisecond query performance.
+        </p>
+
+        <div class="security-badges">
+          <div class="security-badge-item">
+            <div class="badge-icon">🛡️</div>
+            <div class="badge-content">
+              <h4>Role-Based Access Control (RBAC)</h4>
+              <p>Strict segregation between Security Analysts, Detection Engineers, and SOC Administrators.</p>
+            </div>
+          </div>
+
+          <div class="security-badge-item">
+            <div class="badge-icon">🔒</div>
+            <div class="badge-content">
+              <h4>PBKDF2-HMAC-SHA256 &amp; Salted Secrets</h4>
+              <p>Zero plaintext storage. 100,000 hashing rounds per credential with unique per-user salting.</p>
+            </div>
+          </div>
+
+          <div class="security-badge-item">
+            <div class="badge-icon">🇮🇳</div>
+            <div class="badge-content">
+              <h4>CERT-In 180-Day Retentive &amp; 6-Hr Reporting</h4>
+              <p>Compliance directions under Section 70B(6) IT Act. Immutable SHA-256 Merkle hash chain.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="platform-status-ticker">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span>Kavalan Distributed Fleet Active</span>
+        </div>
+        <span class="mono" id="live-time-ticker">--:--:-- UTC</span>
+      </div>
+    </div>
+
+    <!-- Right: Authentication Terminal -->
+    <div class="form-panel">
+      <div>
+        <div class="form-header">
+          <h2>Secure Workstation Sign In</h2>
+          <p>Enter your enterprise credentials or select an RBAC preset to authenticate.</p>
+        </div>
+
+        <div class="alert-banner error" id="login-error-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="login-error-text">Invalid username or password.</span>
+        </div>
+
+        <form id="login-form" onsubmit="handleLoginSubmit(event)">
+          <div class="input-group">
+            <label class="input-label" for="username-input">
+              <span>Operator Username</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input type="text" id="username-input" class="form-input" placeholder="e.g. admin" required autocomplete="username" autofocus>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="password-input">
+              <span>Cryptographic Credential</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input type="password" id="password-input" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+              <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">
+                <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-btn">
+            <span>Authenticate Session</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+
+        <!-- Role Quick Presets for Enterprise Testing -->
+        <div class="role-presets-box">
+          <div class="role-presets-header">
+            <span>Enterprise Role Presets (One-Click)</span>
+            <span style="font-size:10px;color:var(--text-tertiary);">Auto-fills credentials</span>
+          </div>
+          <div class="role-presets-grid">
+            <button type="button" class="role-btn active" onclick="applyPreset('admin', 'KavalanAdmin2026!')">
+              <span class="role-tag" style="color:#10b981;">ADMIN</span>
+              <span class="role-desc">Full Control</span>
+            </button>
+            <button type="button" class="role-btn" onclick="applyPreset('engineer', 'KavalanEngineer2026!')">
+              <span class="role-tag" style="color:#38bdf8;">ENGINEER</span>
+              <span class="role-desc">Rules &amp; Fleet</span>
+            </button>
+            <button type="button" class="role-btn" onclick="applyPreset('analyst', 'KavalanAnalyst2026!')">
+              <span class="role-tag" style="color:#f59e0b;">ANALYST</span>
+              <span class="role-desc">Triage &amp; Notes</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="security-assurance-footer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        <span>End-to-End Cryptographic Audit Logging Enabled</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    // Update live UTC clock
+    function updateLiveClock() {
+      const now = new Date();
+      $('live-time-ticker').textContent = now.toUTCString().slice(17, 25) + ' UTC';
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    // Toggle password view
+    function togglePasswordVisibility() {
+      const input = $('password-input');
+      const icon = $('eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      }
+    }
+
+    // Role Presets Selection
+    function applyPreset(username, password) {
+      $('username-input').value = username;
+      $('password-input').value = password;
+      $('login-error-banner').style.display = 'none';
+
+      document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.role-btn')).find(b => b.textContent.includes(username.toUpperCase()));
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    // Pre-populate with admin preset by default
+    applyPreset('admin', 'KavalanAdmin2026!');
+
+    // Handle Form Submission
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const u = $('username-input').value.trim();
+      const p = $('password-input').value;
+      const errBanner = $('login-error-banner');
+      const errText = $('login-error-text');
+      const submitBtn = $('submit-btn');
+
+      errBanner.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verifying Credentials...</span>';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errText.textContent = data.error || 'Authentication failure. Check username and password.';
+          errBanner.style.display = 'flex';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Authenticate Session</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+          return;
+        }
+
+        // Store authentication credentials and session token
+        localStorage.setItem('kavalan_session_token', data.token);
+        localStorage.setItem('kavalan_user', JSON.stringify({
+          username: data.username,
+          role: data.role,
+          permissions: data.permissions || []
+        }));
+
+        submitBtn.innerHTML = '<span>Session Authorized! Redirecting...</span>';
+        submitBtn.style.background = '#10b981';
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 400);
+
+      } catch (err) {
+        errText.textContent = 'Network or server communication failure: ' + err.message;
+        errBanner.style.display = 'flex';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Authenticate Session</span>';
+      }
+    }
+  </script>
+</body>
+</html>
