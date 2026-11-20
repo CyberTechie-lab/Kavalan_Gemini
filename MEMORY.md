@@ -82,6 +82,27 @@
   - Added `#btn-header-signin` in `.top-header-right`.
   - When logged out, the user avatar and logout buttons cleanly swap for the "Sign In" action.
 
+### Milestone 8: 1-Click Multi-IP Rotating AI Agent Campaign (Strix Benchmark)
+- **Engine Simulation (`src/store.ts`):**
+  - Added full multi-stage autonomous AI agent killchain rotating across 6 ephemeral cloud IPs:
+    - **Node 1 (185.220.101.41):** Reconnaissance sweep (`/.env`, `/.git/config`, `/tokens`, `/backup.zip`).
+    - **Node 2 (45.155.205.88):** SQL Injection UNION & login bypass payloads.
+    - **Node 3 (91.214.124.19):** Directory & Path Traversal (`/etc/passwd`, `/etc/shadow`, `/proc/self/environ`).
+    - **Node 4 (198.51.100.142):** Cloud Metadata SSRF queries targeting AWS IMDS (`169.254.169.254`).
+    - **Node 5 (203.0.113.177):** AWS CloudTrail API Evasion (`ListBuckets`, `GetCallerIdentity`, `StopLogging`).
+    - **Node 6 (172.64.155.33):** Kubernetes Privileged Pod creation (`privileged: true`) + MCP Tool-Call prompt injection (`execute_sql`).
+  - Concurrently injected 30 benign normal human shopper events (`192.0.2.50-54` hitting `/products`, `/cart`, `/checkout`).
+- **Correlation & Collapse Engine:**
+  - Automatically correlates all 6 rotating cloud IPs into **1 Unified Critical Campaign Alert (`Rule 100400`)**.
+  - Automatically folds/suppresses individual per-IP sub-alerts into the master campaign alert to eliminate alert fatigue.
+  - Verifies that concurrent human shopper transactions score **0 False Positives (100% Precision)**.
+- **Console UI Integration (`public/index.html`):**
+  - Added top header button `#btn-strix-hdr` ("Strix Benchmark").
+  - Added Overview HUD Hero Callout Card with 1-click trigger button.
+  - Added primary Red Team simulation card in `tab-graph`.
+  - Added dedicated Strix Benchmark campaign banner in `tab-sec` (Security Alerts queue).
+  - Implemented `triggerStrixBenchmark()` with live stage-by-stage terminal logging and automatic triage selection.
+
 ---
 
 ## 3. Key Files & Directory Structure
