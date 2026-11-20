@@ -46,7 +46,14 @@ from ai.ai_analyst import AIAttackAnalyst
 from gemini.service import GeminiAIService
 from sec_llm.service import SecLLMService
 from vuln_scanner import VulnerabilityEngine
-from fastapi import FastAPI, Request, status
+from auth import AuthManager
+from audit import AuditLogger
+from security import AgentSecurityManager
+from quiet_source_monitor import QuietSourceMonitor
+from saved_searches import SavedSearchManager
+from cert_in_compliance import generate_cert_in_report
+from schema_mapper import cem_to_ocsf, cem_to_ecs
+from fastapi import FastAPI, Request, status, Header, Depends
 from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
 
@@ -246,6 +253,18 @@ class ManagerCore:
         self.sec_llm = self.gemini
         self.ai_analyst = AIAttackAnalyst(gemini_service=self.gemini)
         self.vuln_engine = VulnerabilityEngine(lambda: get_db(self.db_path))
+        self.auth = AuthManager(lambda: get_db(self.db_path))
+        self.audit = AuditLogger(lambda: get_db(self.db_path))
+        self.agent_sec = AgentSecurityManager(lambda: get_db(self.db_path))
+        self.quiet_monitor = QuietSourceMonitor(
+            alert_callback=self._handle_background_alert,
+            quiet_threshold_sec=300
+        )
+        self.saved_searches = SavedSearchManager(
+            db_factory=lambda: get_db(self.db_path),
+            indexer_url=self.indexer_url,
+            alert_callback=self._handle_background_alert
+        )
         try:
             from threat_intel import ThreatIntelEngine
             indexer_db_path = str(SIEM_ROOT / "indexer.db")
@@ -455,7 +474,12 @@ class ManagerCore:
                     INSERT INTO agents (id, name, ip, os, registered_at, last_keepalive, status, metrics_json)
                     VALUES (?, ?, ?, ?, ?, ?, 'active', '{}')
                 """, (agent_id, name, ip, os_name, now, now))
-        return {"agent_id": agent_id, "name": name, "status": "active"}
+        auth_key = self.agent_sec.get_or_create_agent_key(agent_id)
+        try:
+            self.quiet_monitor.record_heartbeat(agent_id, name, ip)
+        except Exception:
+            pass
+        return {"agent_id": agent_id, "name": name, "status": "active", "auth_key": auth_key}
 
     def heartbeat_agent(self, agent_id: str, metrics: Optional[Dict] = None) -> bool:
         con = get_db(self.db_path)
@@ -470,6 +494,12 @@ class ManagerCore:
                 cur = con.execute("UPDATE agents SET last_keepalive=?, status='active', metrics_json=? WHERE id=?",
                                   (now, json.dumps(m), agent_id))
             updated = cur.rowcount > 0
+        try:
+            row = con.execute("SELECT name, ip FROM agents WHERE id=?", (agent_id,)).fetchone()
+            if row:
+                self.quiet_monitor.record_heartbeat(agent_id, row[0], row[1])
+        except Exception:
+            pass
         return updated
 
     def check_agent_keepalives(self) -> None:
@@ -999,7 +1029,31 @@ class ManagerCore:
             if fired_alerts:
                 self._dispatch_alerts_to_indexer(fired_alerts)
 
+        try:
+            self.quiet_monitor.record_event_batch(agent_id, events)
+        except Exception:
+            pass
+
         return {"accepted": len(valid_rows), "agent_id": agent_id, "alerts_fired": len(fired_alerts)}
+
+    def ingest_generic_log(self, raw_line: str, host: str = "syslog-source", agent_id: str = "syslog-receiver") -> Dict[str, Any]:
+        """Parses an arbitrary log line using hierarchical decoders and ingests it."""
+        ev = self.decoder_pipeline.decode_line(raw_line, host=host)
+        if not ev:
+            ev = CEMEvent(
+                ts=int(time.time()),
+                host=host,
+                source_ip="127.0.0.1",
+                log_type="syslog",
+                action="raw_event",
+                target=host,
+                outcome="unknown",
+                status="200",
+                user=None,
+                raw=raw_line.strip(),
+                meta={"source": "generic_ingest"}
+            )
+        return self.ingest_agent_events(agent_id, [ev.to_dict()])
 
     def _forward_to_indexer(self, docs: List[Dict[str, Any]]) -> None:
         try:
@@ -1207,15 +1261,70 @@ class ManagerCore:
             })
             return self.state
 
+    def _handle_background_alert(self, alert: Dict[str, Any]) -> None:
+        """Processes background alerts raised by Quiet Source Monitor or Scheduled Searches."""
+        with self.lock:
+            self.state["alerts"].append(alert)
+            lvl = alert.get("level", 5)
+            sev = "CRITICAL" if lvl >= 12 else ("HIGH" if lvl >= 8 else "MEDIUM")
+            self.state["counts"][sev] = self.state["counts"].get(sev, 0) + 1
+        
+        # Log to audit trail
+        try:
+            self.audit.log(
+                username="system:monitor",
+                role="admin",
+                action="alert_generated",
+                resource_type="alert",
+                resource_id=str(alert.get("rule_id")),
+                details=alert.get("description", ""),
+                outcome="alert"
+            )
+        except Exception:
+            pass
+
+        # Forward to indexer if available
+        try:
+            req = urllib.request.Request(
+                f"{self.indexer_url}/api/index/alerts",
+                data=json.dumps([alert]).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=2.0) as resp:
+                pass
+        except Exception:
+            pass
+
+        # Auto-create case for High/Critical alerts
+        if lvl >= 8:
+            try:
+                self.create_case(
+                    title=alert.get("name", "Automated Security Alert"),
+                    description=alert.get("description", ""),
+                    severity=sev,
+                    entities={"source_ip": alert.get("source_ip"), "host": alert.get("host")},
+                    assignee="Unassigned"
+                )
+            except Exception:
+                pass
+
     def start_worker(self) -> None:
         if self.worker_thread is not None and self.worker_thread.is_alive():
             return
         self.stop_event.clear()
+        self.quiet_monitor.start()
+        self.saved_searches.start()
         self.worker_thread = threading.Thread(target=self._loop, daemon=True)
         self.worker_thread.start()
 
     def stop_worker(self) -> None:
         self.stop_event.set()
+        try:
+            self.quiet_monitor.stop()
+            self.saved_searches.stop()
+        except Exception:
+            pass
         if self.worker_thread is not None:
             self.worker_thread.join(timeout=2.0)
 
@@ -1253,14 +1362,43 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
         res = mgr.register_agent(name, ip, os_name)
         return res
 
+    def get_current_user(request: Request) -> Optional[Dict[str, Any]]:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:].strip()
+            return mgr.auth.verify_token(token)
+        return None
+
     @app.post("/api/agent/heartbeat")
     async def heartbeat_agent_api(request: Request):
-        body = await request.json()
+        raw_body = await request.body()
+        try:
+            body = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+        except Exception:
+            return JSONResponse(status_code=400, content={"error": "Invalid JSON body"})
         agent_id = body.get("agent_id")
         metrics = body.get("metrics", {})
         acks = body.get("acks", [])
         if not agent_id:
             return JSONResponse(status_code=400, content={"error": "Missing agent_id"})
+
+        # Check cryptographic signature if present
+        sig = request.headers.get("X-Agent-Signature")
+        ts = request.headers.get("X-Agent-Timestamp")
+        if sig or ts:
+            valid, err = mgr.agent_sec.verify_request_signature(agent_id, ts, sig, raw_body)
+            if not valid:
+                mgr.audit.log(
+                    username=f"agent:{agent_id}",
+                    role="agent",
+                    action="tamper_attempt",
+                    resource_type="agent_signature",
+                    resource_id=agent_id,
+                    details=f"Heartbeat signature verification failed: {err}",
+                    outcome="failure",
+                    ip=request.client.host if request.client else "unknown"
+                )
+                return JSONResponse(status_code=401, content={"error": f"Agent signature invalid: {err}"})
 
         # Process active response execution acknowledgements
         for ack in acks:
@@ -1305,6 +1443,20 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
         timeout = int(body.get("timeout", 600))
         reason = body.get("reason", "Manual containment ordered via SOC Console")
         res = mgr.ar_engine.trigger_manual_response(action, actor_ip, target, target_agent, timeout, reason)
+        
+        curr = get_current_user(request)
+        user_name = curr["username"] if curr else "admin"
+        user_role = curr["role"] if curr else "admin"
+        mgr.audit.log(
+            username=user_name,
+            role=user_role,
+            action="active_response_triggered",
+            resource_type="firewall",
+            resource_id=actor_ip or target,
+            details={"action": action, "timeout": timeout, "reason": reason},
+            outcome="success",
+            ip=request.client.host if request.client else "127.0.0.1"
+        )
         return res
 
     @app.post("/api/active_response/unblock")
@@ -1314,6 +1466,19 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
         ok = mgr.ar_engine.unblock_response(ar_id)
         if not ok:
             return JSONResponse(status_code=404, content={"error": f"Response {ar_id} not found"})
+        
+        curr = get_current_user(request)
+        user_name = curr["username"] if curr else "admin"
+        user_role = curr["role"] if curr else "admin"
+        mgr.audit.log(
+            username=user_name,
+            role=user_role,
+            action="active_response_unblocked",
+            resource_type="firewall",
+            resource_id=str(ar_id),
+            outcome="success",
+            ip=request.client.host if request.client else "127.0.0.1"
+        )
         return {"status": "ok", "unblocked_id": ar_id}
 
     @app.post("/api/agent/sca")
@@ -1354,12 +1519,47 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
 
     @app.post("/api/agent/events")
     async def agent_events_api(request: Request):
-        body = await request.json()
+        raw_body = await request.body()
+        try:
+            body = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+        except Exception:
+            return JSONResponse(status_code=400, content={"error": "Invalid JSON body"})
         agent_id = body.get("agent_id")
         events = body.get("events", [])
         tx_id = body.get("tx_id")
         if not agent_id or not isinstance(events, list):
             return JSONResponse(status_code=400, content={"error": "Expected agent_id and events array"})
+
+        # Check cryptographic signature if present
+        sig = request.headers.get("X-Agent-Signature")
+        ts = request.headers.get("X-Agent-Timestamp")
+        if sig or ts:
+            valid, err = mgr.agent_sec.verify_request_signature(agent_id, ts, sig, raw_body)
+            if not valid:
+                mgr.audit.log(
+                    username=f"agent:{agent_id}",
+                    role="agent",
+                    action="tamper_attempt",
+                    resource_type="agent_signature",
+                    resource_id=agent_id,
+                    details=f"Signature verification failed: {err}",
+                    outcome="failure",
+                    ip=request.client.host if request.client else "unknown"
+                )
+                mgr._handle_background_alert({
+                    "rule_id": 100801,
+                    "level": 12,
+                    "name": "Agent Telemetry Tampering Detected",
+                    "description": f"HMAC cryptographic signature verification failed for agent '{agent_id}': {err}",
+                    "source_ip": request.client.host if request.client else "unknown",
+                    "agent_id": agent_id,
+                    "host": agent_id,
+                    "timestamp": int(time.time()),
+                    "mitre_id": "T1562.001",
+                    "mitre_tactic": "Defense Evasion"
+                })
+                return JSONResponse(status_code=401, content={"error": f"Agent signature invalid: {err}"})
+
         res = mgr.ingest_agent_events(agent_id, events, tx_id=tx_id)
         return res
 
@@ -1590,6 +1790,20 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
         res = mgr.update_case_status(case_id, st, assignee=assignee, note=note)
         if not res:
             return JSONResponse(content={"error": f"Case {case_id} not found"}, status_code=404)
+        
+        curr = get_current_user(request)
+        user_name = curr["username"] if curr else "analyst"
+        user_role = curr["role"] if curr else "analyst"
+        mgr.audit.log(
+            username=user_name,
+            role=user_role,
+            action="case_status_updated",
+            resource_type="case",
+            resource_id=case_id,
+            details={"status": st, "assignee": assignee, "note": note},
+            outcome="success",
+            ip=request.client.host if request.client else "127.0.0.1"
+        )
         return JSONResponse(content=res)
 
     @app.post("/api/cases/{case_id}/notes")
@@ -1799,6 +2013,253 @@ def create_manager_app(mgr: ManagerCore) -> FastAPI:
             return JSONResponse(content=result)
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
+
+    # ------------------------------------------------------------- Phase 1 SOC Endpoints
+
+    # --- Authentication & User Management ---
+    @app.post("/api/auth/login")
+    async def login_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        username = body.get("username", "").strip()
+        password = body.get("password", "")
+        auth_result = mgr.auth.authenticate(username, password)
+        ip = request.client.host if request.client else "127.0.0.1"
+        if not auth_result:
+            mgr.audit.log(
+                username=username or "anonymous",
+                role="unknown",
+                action="login_failed",
+                resource_type="auth",
+                outcome="failure",
+                ip=ip
+            )
+            return JSONResponse(status_code=401, content={"error": "Invalid username or password"})
+        mgr.audit.log(
+            username=username,
+            role=auth_result["role"],
+            action="login_success",
+            resource_type="auth",
+            outcome="success",
+            ip=ip
+        )
+        return JSONResponse(content=auth_result)
+
+    @app.get("/api/auth/me")
+    async def get_me_api(request: Request):
+        user = get_current_user(request)
+        if not user:
+            # Fallback to default admin for local dev if unauthenticated
+            return JSONResponse(content={"username": "admin", "role": "admin", "permissions": ["all"]})
+        return JSONResponse(content=user)
+
+    @app.post("/api/auth/logout")
+    async def logout_api(request: Request):
+        user = get_current_user(request)
+        if user:
+            mgr.audit.log(
+                username=user["username"],
+                role=user["role"],
+                action="logout",
+                resource_type="auth",
+                outcome="success"
+            )
+        return JSONResponse(content={"status": "ok"})
+
+    @app.get("/api/users")
+    async def list_users_api():
+        return JSONResponse(content={"users": mgr.auth.list_users()})
+
+    @app.post("/api/users")
+    async def create_user_api(request: Request):
+        try:
+            body = await request.json()
+            u = body.get("username", "").strip()
+            p = body.get("password", "")
+            r = body.get("role", "analyst")
+            created = mgr.auth.create_user(u, p, r)
+            curr = get_current_user(request)
+            mgr.audit.log(
+                username=curr["username"] if curr else "admin",
+                role=curr["role"] if curr else "admin",
+                action="create_user",
+                resource_type="user",
+                resource_id=u,
+                details={"role": r},
+                outcome="success"
+            )
+            return JSONResponse(content=created)
+        except ValueError as e:
+            return JSONResponse(status_code=400, content={"error": str(e)})
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"error": str(e)})
+
+    @app.delete("/api/users/{username}")
+    async def delete_user_api(username: str, request: Request):
+        ok = mgr.auth.delete_user(username)
+        if not ok:
+            return JSONResponse(status_code=400, content={"error": "Cannot delete user or user not found"})
+        curr = get_current_user(request)
+        mgr.audit.log(
+            username=curr["username"] if curr else "admin",
+            role=curr["role"] if curr else "admin",
+            action="delete_user",
+            resource_type="user",
+            resource_id=username,
+            outcome="success"
+        )
+        return JSONResponse(content={"status": "ok", "deleted": username})
+
+    # --- Audit Trail ---
+    @app.get("/api/audit")
+    async def list_audit_logs_api(
+        action: Optional[str] = None,
+        username: Optional[str] = None,
+        outcome: Optional[str] = None,
+        limit: int = 100,
+        offset: int = 0
+    ):
+        logs = mgr.audit.query(action=action, username=username, outcome=outcome, limit=limit, offset=offset)
+        return JSONResponse(content={"audit_logs": logs, "count": len(logs)})
+
+    @app.post("/api/audit")
+    async def record_audit_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        curr = get_current_user(request)
+        logged = mgr.audit.log(
+            username=body.get("username") or (curr["username"] if curr else "analyst"),
+            role=body.get("role") or (curr["role"] if curr else "analyst"),
+            action=body.get("action", "operator_action"),
+            resource_type=body.get("resource_type", "system"),
+            resource_id=body.get("resource_id"),
+            details=body.get("details"),
+            outcome=body.get("outcome", "success"),
+            ip=request.client.host if request.client else "127.0.0.1"
+        )
+        return JSONResponse(content=logged)
+
+    # --- Key Rotation & Fleet Security ---
+    @app.post("/api/agents/{agent_id}/rotate-key")
+    async def rotate_agent_key_api(agent_id: str, request: Request):
+        res = mgr.agent_sec.rotate_agent_key(agent_id)
+        curr = get_current_user(request)
+        mgr.audit.log(
+            username=curr["username"] if curr else "admin",
+            role=curr["role"] if curr else "admin",
+            action="rotate_agent_key",
+            resource_type="agent",
+            resource_id=agent_id,
+            outcome="success"
+        )
+        return JSONResponse(content=res)
+
+    # --- Ingestion Telemetry & Dead-Man Switch ---
+    @app.get("/api/fleet/telemetry")
+    async def fleet_telemetry_api():
+        return JSONResponse(content=mgr.quiet_monitor.get_telemetry())
+
+    # --- Saved & Scheduled Searches ---
+    @app.get("/api/searches")
+    async def list_searches_api():
+        return JSONResponse(content={"searches": mgr.saved_searches.list_saved_searches()})
+
+    @app.post("/api/searches")
+    async def create_saved_search_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        curr = get_current_user(request)
+        created_by = curr["username"] if curr else "analyst"
+        item = mgr.saved_searches.create_saved_search(
+            name=body.get("name", "Untitled Search"),
+            query=body.get("query", "*"),
+            description=body.get("description", ""),
+            created_by=created_by,
+            is_scheduled=bool(body.get("is_scheduled", False)),
+            schedule_interval_mins=int(body.get("schedule_interval_mins", 15)),
+            alert_threshold=int(body.get("alert_threshold", 1)),
+            alert_severity=body.get("alert_severity", "HIGH")
+        )
+        mgr.audit.log(
+            username=created_by,
+            role=curr["role"] if curr else "analyst",
+            action="create_saved_search",
+            resource_type="search",
+            resource_id=item["id"],
+            details=item["name"],
+            outcome="success"
+        )
+        return JSONResponse(content=item)
+
+    @app.delete("/api/searches/{search_id}")
+    async def delete_saved_search_api(search_id: str):
+        ok = mgr.saved_searches.delete_saved_search(search_id)
+        return JSONResponse(content={"deleted": ok, "id": search_id})
+
+    @app.post("/api/searches/{search_id}/run")
+    async def run_saved_search_api(search_id: str):
+        res = mgr.saved_searches.run_search(search_id)
+        return JSONResponse(content=res)
+
+    # --- CERT-In 6-Hour Incident Compliance Report ---
+    @app.get("/api/cases/{case_id}/cert-in-report")
+    async def cert_in_report_api(case_id: str, request: Request):
+        case_doc = mgr.get_case(case_id)
+        if not case_doc:
+            return JSONResponse(status_code=404, content={"error": f"Case {case_id} not found"})
+        fmt = request.query_params.get("format", "json").lower()
+        org_name = request.query_params.get("org", "Enterprise SOC")
+        report = generate_cert_in_report(case_doc, organization_name=org_name)
+        curr = get_current_user(request)
+        mgr.audit.log(
+            username=curr["username"] if curr else "analyst",
+            role=curr["role"] if curr else "analyst",
+            action="generate_cert_in_report",
+            resource_type="case",
+            resource_id=case_id,
+            details={"format": fmt, "compliance": report.get("cert_in_metadata", {}).get("compliance_status")},
+            outcome="success"
+        )
+        if fmt in ("markdown", "md"):
+            return PlainTextResponse(content=report["markdown_report"], media_type="text/markdown")
+        return JSONResponse(content=report)
+
+    # --- Schema Mapping Export (OCSF & ECS) ---
+    @app.post("/api/events/export")
+    async def export_events_schema_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        raw_events = body.get("events", [])
+        fmt = body.get("format", "ocsf").lower()
+        if fmt == "ecs":
+            mapped = [cem_to_ecs(ev) for ev in raw_events]
+        else:
+            mapped = [cem_to_ocsf(ev) for ev in raw_events]
+        return JSONResponse(content={"format": fmt, "count": len(mapped), "events": mapped})
+
+    # --- Generic Ingestion (Syslog / Cloud / Firewalls) ---
+    @app.post("/api/ingest")
+    async def ingest_generic_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        raw_line = body.get("raw") or body.get("log") or ""
+        host = body.get("host") or "syslog-source"
+        agent_id = body.get("agent_id") or "syslog-receiver"
+        if not raw_line and "events" in body:
+            res = mgr.ingest_agent_events(agent_id, body["events"])
+            return JSONResponse(content=res)
+        res = mgr.ingest_generic_log(raw_line, host=host, agent_id=agent_id)
+        return JSONResponse(content=res)
 
     return app
 

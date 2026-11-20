@@ -1908,6 +1908,17 @@
         </span>
         <span class="dock-tab-badge ok" id="badge-rules-nav" style="display:none;">0</span>
       </button>
+
+      <!-- 5. GOVERNANCE & COMPLIANCE -->
+      <div class="nav-section-title">Governance &amp; Audit</div>
+
+      <button class="dock-tab" id="btn-audit" onclick="switchTab('audit')" title="Audit Trail &amp; Compliance" data-label="Audit Trail &amp; Compliance">
+        <span class="dock-tab-inner">
+          <svg class="dock-svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span class="dock-tab-label">Audit Trail &amp; Compliance</span>
+        </span>
+        <span class="dock-tab-badge ok" id="badge-audit-nav">Live</span>
+      </button>
     </nav>
 
     <!-- Sidebar Footer -->
@@ -1975,6 +1986,10 @@
       </div>
 
       <div class="top-header-right">
+        <div class="user-auth-badge" id="user-badge-container" onclick="openAuthModal()" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;cursor:pointer;" title="Click to view/switch user accounts">
+          <span id="user-badge-role" style="font-size:9.5px;text-transform:uppercase;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(16,185,129,0.15);color:#10b981;">ADMIN</span>
+          <span id="user-badge-name" style="font-weight:600;color:var(--text-primary);">admin</span>
+        </div>
         <div class="live-pill">
           <span class="dot" id="dot"></span>
           <span id="status">fleet connected</span>
@@ -1992,7 +2007,7 @@
     <div class="workspace-content">
 
   <!-- Telemetry HUD Grid (KPIs) -->
-  <div class="hud-grid">
+  <div class="hud-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
     <div class="hud-tile">
       <div class="hud-label">Enrolled endpoints</div>
       <div class="hud-val" id="kpi-agents">&ndash; <small id="kpi-agents-active">0 active</small></div>
@@ -2012,6 +2027,11 @@
       <div class="hud-label">Total Alerts</div>
       <div class="hud-val" id="kpi-alerts">&ndash;</div>
       <div class="hud-sub">Correlated triage queue</div>
+    </div>
+    <div class="hud-tile">
+      <div class="hud-label">Ingestion Telemetry</div>
+      <div class="hud-val" id="kpi-telemetry-eps">0.0 <small>EPS</small></div>
+      <div class="hud-sub" id="kpi-telemetry-status">Lag: 0ms &middot; 0 quiet sources</div>
     </div>
     <div class="hud-tile">
       <div class="hud-label">Indexer storage footprint</div>
@@ -2334,6 +2354,8 @@
           <button class="btn-sm alert" onclick="executePlaybook('perimeter-drop')">🛡️ Drop Perimeter IPs (Fleet-wide)</button>
           <button class="btn-sm alert" onclick="executePlaybook('account-lock')">👤 Quarantine User Accounts</button>
           <button class="btn-sm primary" style="background:#7c3aed;color:#fff;border-color:#6d28d9;" onclick="executePlaybook('full-containment')">⚡ Full Incident Containment</button>
+          <button class="btn-sm" style="background:#0284c7;color:#fff;border-color:#0369a1;" onclick="downloadCertInReport('json')" title="Generate CERT-In Section 70B(6) 6-Hour Incident Notification">🇮🇳 CERT-In 6-Hr Report (JSON)</button>
+          <button class="btn-sm" style="background:#0369a1;color:#fff;border-color:#075985;" onclick="downloadCertInReport('markdown')" title="Generate Annexure I Markdown Report">📋 Annexure I (MD)</button>
         </div>
         <div id="cd-playbooks-history" style="margin-top:10px;font-size:11.5px;color:var(--text-secondary);"></div>
       </div>
@@ -2884,6 +2906,27 @@
 
   <!-- TAB 6: INDEXER SEARCH & DISCOVERY (KIBANA DISCOVER STYLE) -->
   <div id="tab-search" style="display:none">
+    <!-- Piped Syntax Query Engine Bar (Splunk/KQL Style) -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.04em;">⚡ SOC Piped Query Syntax Engine</span>
+          <span style="font-size:11px;color:var(--text-tertiary);">Piped operators: <code>| stats count by &lt;field&gt; | where count &gt; N | sort -count | limit N</code></span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-sm" style="padding:2px 8px;font-size:10.5px;" onclick="loadPipedTemplate('top_ips')">Top IPs</button>
+          <button class="btn-sm" style="padding:2px 8px;font-size:10.5px;" onclick="loadPipedTemplate('failed_auth')">Failed Auth</button>
+          <button class="btn-sm" style="padding:2px 8px;font-size:10.5px;" onclick="loadPipedTemplate('web_paths')">Top Paths</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="piped-query-input" placeholder="e.g. * | stats count by source_ip | where count > 0 | sort -count | limit 20" style="flex:1;font-family:var(--mono);font-size:12.5px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface-subtle);" onkeydown="if(event.key==='Enter')runPipedSearch()">
+        <button class="btn-sm primary" onclick="runPipedSearch()" style="padding:6px 16px;font-weight:700;">▶ Run Piped Search</button>
+        <button class="btn-sm" onclick="saveCurrentPipedSearch()" title="Save as Scheduled Search">★ Save Search</button>
+      </div>
+      <div id="piped-results-container" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:10px;"></div>
+    </div>
+
     <!-- Top Filter & Control Bar -->
     <div class="filter-bar" style="margin-bottom:12px;">
       <div style="display:flex;gap:8px;flex:1;min-width:260px;">
@@ -3268,6 +3311,116 @@
     </div>
   </div>
 
+  <!-- TAB 11: AUDIT TRAIL, CRYPTOGRAPHIC INTEGRITY & COMPLIANCE -->
+  <div id="tab-audit" style="display:none">
+    <!-- Top Summary & Control Bar -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0;font-size:14px;font-weight:700;color:var(--text-primary)">Tamper-Evident Audit Trail &amp; CERT-In Compliance</h3>
+        <span style="font-size:12px;color:var(--text-secondary)">Immutable operator activity audit logs, SHA-256 Merkle chain verification, and 180-day retention management</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn-sm" onclick="verifyHashChainIntegrity()" style="background:#0284c7;color:#fff;border-color:#0369a1;">🔒 Verify Storage Hash-Chain</button>
+        <button class="btn-sm" onclick="runColdArchive()">📦 Run Cold Archive</button>
+        <button class="btn-sm" onclick="runRetentionBackup()">💾 Export System Backup</button>
+        <button class="btn-sm" onclick="loadAuditAndCompliance()">⟳ Refresh</button>
+      </div>
+    </div>
+
+    <!-- Compliance Status Metrics Banner -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin-bottom:14px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;">
+      <div style="text-align:center;">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;">CERT-In Retention</div>
+        <div style="font-size:16px;font-weight:800;color:var(--ok);" id="audit-retention-status">180 Days Active</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;">Storage Integrity</div>
+        <div style="font-size:16px;font-weight:800;color:var(--ok);" id="audit-hashchain-status">Chain Verified</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;">Total Audit Events</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text-primary);font-family:var(--mono);" id="audit-total-count">0</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;">Cold Compressed Archives</div>
+        <div style="font-size:16px;font-weight:800;color:var(--accent);font-family:var(--mono);" id="audit-archive-count">0 files</div>
+      </div>
+    </div>
+
+    <!-- Audit Logs Explorer Card -->
+    <div class="card" style="margin-bottom:14px;padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text-primary);text-transform:uppercase;">SOC Activity Audit Trail</span>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="audit-filter-user" placeholder="Filter User..." style="width:120px;font-size:11.5px;padding:3px 6px;" oninput="filterAuditTable()">
+          <input type="text" id="audit-filter-action" placeholder="Filter Action..." style="width:140px;font-size:11.5px;padding:3px 6px;" oninput="filterAuditTable()">
+        </div>
+      </div>
+      <div style="overflow-x:auto;max-height:360px;">
+        <table class="data-table" style="width:100%;font-size:11.5px;">
+          <thead>
+            <tr>
+              <th style="width:130px;">Timestamp</th>
+              <th style="width:90px;">User</th>
+              <th style="width:80px;">Role</th>
+              <th style="width:140px;">Action</th>
+              <th style="width:100px;">Resource</th>
+              <th>Details</th>
+              <th style="width:80px;">Outcome</th>
+              <th style="width:110px;">Client IP</th>
+            </tr>
+          </thead>
+          <tbody id="audit-logs-tbody">
+            <tr><td colspan="8" class="empty">Loading audit events...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- User Accounts & RBAC Card -->
+    <div class="card" style="padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <span style="font-size:12px;font-weight:700;color:var(--text-primary);text-transform:uppercase;">RBAC User Accounts &amp; Access Controls</span>
+          <span style="font-size:11px;color:var(--text-secondary);display:block;">Role hierarchy: Analyst (Triage), Engineer (Detection &amp; Fleet), Admin (Full Control &amp; Key Rotation)</span>
+        </div>
+        <button class="btn-sm primary" onclick="toggleNewUserForm()">+ Add User Account</button>
+      </div>
+
+      <div id="new-user-form" style="display:none;background:var(--surface-subtle);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input type="text" id="nu-username" placeholder="Username" style="font-size:12px;padding:4px 8px;width:140px;">
+          <input type="password" id="nu-password" placeholder="Password (min 8 chars)" style="font-size:12px;padding:4px 8px;width:160px;">
+          <select id="nu-role" style="font-size:12px;padding:4px 8px;">
+            <option value="analyst">Analyst</option>
+            <option value="engineer">Engineer</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn-sm primary" onclick="submitCreateUser()">Create User</button>
+          <button class="btn-sm" onclick="toggleNewUserForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table" style="width:100%;font-size:11.5px;">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Permissions</th>
+              <th>Created At</th>
+              <th>Last Login</th>
+              <th style="width:80px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="6" class="empty">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
       <footer>
         <b>Kavalan SIEM</b> &middot; Distributed 4-Tier Security Architecture &middot; Dedicated AI Threat Defense &middot; Airgapped Local Engine
       </footer>
@@ -3299,7 +3452,7 @@ const fmtTime = iso => {
   } catch(e) { return iso; }
 };
 
-const VALID_TABS = ['sec', 'cases', 'ar', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest'];
+const VALID_TABS = ['sec', 'cases', 'ar', 'fleet', 'graph', 'search', 'mitre', 'ai', 'sec-llm', 'vuln', 'fim', 'logtest', 'audit'];
 let activeTab = 'sec';
 
 const TAB_TITLES = {
@@ -3314,7 +3467,8 @@ const TAB_TITLES = {
   'sec-llm': 'Google Gemini AI Studio & Threat Workbench',
   'vuln': 'SCA Baseline & Vulnerability Management',
   'fim': 'File Integrity Monitoring (FIM)',
-  'logtest': 'Detection Rule Studio · Sigma Engine & Logtest'
+  'logtest': 'Detection Rule Studio · Sigma Engine & Logtest',
+  'audit': 'Tamper-Evident Audit Trail & CERT-In Compliance'
 };
 
 function isSidebarAutohide() {
@@ -3438,6 +3592,7 @@ function switchTab(t, updateUrl = true){
   if(t === 'search') runSearch();
   if(t === 'graph') { setupGraphInteractions(); loadAttackGraph(); setTimeout(resizeGraphCanvas, 50); }
   if(t === 'logtest') { loadCustomRules(); loadRuleTemplates(); }
+  if(t === 'audit') { loadAuditAndCompliance(); }
 
   if (isSidebarAutohide() || window.innerWidth <= 1024) {
     closeSidebar();
@@ -6813,12 +6968,473 @@ async function triggerSimScenario(scenario) {
   }
 }
 
+// ==============================================================================
+// PHASE 1 ENTERPRISE SOC MODULES: AUTH, AUDIT, PIPED SEARCH, CERT-IN, RETENTION
+// ==============================================================================
+
+let currentUser = { username: 'admin', role: 'admin', permissions: ['all'] };
+let cachedAuditLogs = [];
+let currentViewingCaseId = null;
+
+// --- Authentication & User Session Management ---
+async function checkCurrentUser() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (res.ok) {
+      const u = await res.json();
+      if (u && u.username) {
+        currentUser = u;
+        updateUserUI();
+      }
+    }
+  } catch(e) {}
+}
+
+function updateUserUI() {
+  const roleEl = $('user-badge-role');
+  const nameEl = $('user-badge-name');
+  if (roleEl) {
+    roleEl.textContent = (currentUser.role || 'ANALYST').toUpperCase();
+    if (currentUser.role === 'admin') {
+      roleEl.style.color = '#10b981';
+      roleEl.style.background = 'rgba(16,185,129,0.15)';
+    } else if (currentUser.role === 'engineer') {
+      roleEl.style.color = '#3b82f6';
+      roleEl.style.background = 'rgba(59,130,246,0.15)';
+    } else {
+      roleEl.style.color = '#f59e0b';
+      roleEl.style.background = 'rgba(245,158,11,0.15)';
+    }
+  }
+  if (nameEl) nameEl.textContent = currentUser.username || 'admin';
+}
+
+function openAuthModal() {
+  $('auth-error-msg').style.display = 'none';
+  $('auth-username').value = currentUser.username || 'admin';
+  $('auth-password').value = '';
+  $('modal-auth-login').style.display = 'flex';
+}
+
+function closeAuthModal() {
+  $('modal-auth-login').style.display = 'none';
+}
+
+async function loginUser() {
+  const u = $('auth-username').value.trim();
+  const p = $('auth-password').value;
+  const errEl = $('auth-error-msg');
+  errEl.style.display = 'none';
+
+  if (!u || !p) {
+    errEl.textContent = 'Please enter both username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Login failed.';
+      errEl.style.display = 'block';
+      return;
+    }
+    currentUser = data;
+    updateUserUI();
+    closeAuthModal();
+    if (activeTab === 'audit') loadAuditAndCompliance();
+  } catch(err) {
+    errEl.textContent = 'Connection error: ' + err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function logoutUser() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch(e) {}
+  currentUser = { username: 'analyst', role: 'analyst', permissions: ['view_data'] };
+  updateUserUI();
+  closeAuthModal();
+  if (activeTab === 'audit') loadAuditAndCompliance();
+}
+
+// --- Ingestion Telemetry & Dead-Man Switch HUD ---
+async function pollFleetTelemetry() {
+  try {
+    const res = await fetch('/api/fleet/telemetry');
+    if (!res.ok) return;
+    const data = await res.json();
+    const epsEl = $('kpi-telemetry-eps');
+    const statusEl = $('kpi-telemetry-status');
+    if (epsEl) epsEl.innerHTML = `${data.aggregate_eps || 0.0} <small>EPS</small>`;
+    if (statusEl) {
+      const quiet = data.quiet_sources_count || 0;
+      const lag = Math.round(data.fleet_ingest_lag_ms || 0);
+      statusEl.innerHTML = `Lag: ${lag}ms &middot; <span style="${quiet > 0 ? 'color:var(--crit);font-weight:700;' : ''}">${quiet} quiet sources</span>`;
+    }
+  } catch(e) {}
+}
+
+// --- Piped Search Query Engine (Splunk / KQL Style) ---
+function loadPipedTemplate(tpl) {
+  const input = $('piped-query-input');
+  if (!input) return;
+  if (tpl === 'top_ips') {
+    input.value = '* | stats count by source_ip | where count > 0 | sort -count | limit 15';
+  } else if (tpl === 'failed_auth') {
+    input.value = 'log_type=auth | where status=fail | stats count by user | sort -count';
+  } else if (tpl === 'web_paths') {
+    input.value = 'log_type=web | stats count by target | where count > 2 | sort -count | limit 20';
+  }
+  runPipedSearch();
+}
+
+async function runPipedSearch() {
+  const q = ($('piped-query-input').value || '').trim();
+  const container = $('piped-results-container');
+  if (!container) return;
+
+  container.style.display = 'block';
+  container.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:8px 0;">⚡ Executing piped query pipeline...</div>';
+
+  try {
+    const res = await fetch('/api/search/piped', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q || '*' })
+    });
+    const d = await res.json();
+    if (!res.ok) {
+      container.innerHTML = `<div style="color:var(--crit);font-size:12px;padding:6px 0;">Query Error: ${esc(d.error || 'Failed')}</div>`;
+      return;
+    }
+
+    if (d.type === 'aggregation') {
+      const results = d.results || [];
+      const keys = results.length > 0 ? Object.keys(results[0]) : ['field', 'count'];
+      let html = `<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:6px;">Aggregation returned <b>${results.length}</b> rows (${d.execution_ms || 0}ms):</div>`;
+      html += '<table class="data-table" style="width:100%;font-size:12px;"><thead><tr>';
+      keys.forEach(k => html += `<th>${esc(k)}</th>`);
+      html += '</tr></thead><tbody>';
+      if (results.length === 0) {
+        html += `<tr><td colspan="${keys.length}" class="empty">No matching records.</td></tr>`;
+      } else {
+        results.forEach(r => {
+          html += '<tr>';
+          keys.forEach(k => html += `<td><b>${esc(r[k])}</b></td>`);
+          html += '</tr>';
+        });
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } else {
+      const results = d.results || [];
+      let html = `<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:6px;">Returned <b>${results.length}</b> events (${d.execution_ms || 0}ms):</div>`;
+      html += '<table class="data-table" style="width:100%;font-size:11.5px;"><thead><tr><th style="width:130px;">Time</th><th style="width:110px;">Source IP</th><th style="width:80px;">Type</th><th>Action</th><th style="width:70px;">Outcome</th></tr></thead><tbody>';
+      if (results.length === 0) {
+        html += '<tr><td colspan="5" class="empty">No events found.</td></tr>';
+      } else {
+        results.slice(0, 50).forEach(ev => {
+          html += `<tr><td class="mono">${fmtTime(ev.ts || ev.timestamp)}</td><td class="mono"><b>${esc(ev.source_ip || '-')}</b></td><td>${esc(ev.log_type || '-')}</td><td>${esc(ev.action || '-')}</td><td>${esc(ev.outcome || '-')}</td></tr>`;
+        });
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+  } catch(err) {
+    container.innerHTML = `<div style="color:var(--crit);font-size:12px;">Network failure: ${esc(err.message)}</div>`;
+  }
+}
+
+async function saveCurrentPipedSearch() {
+  const q = ($('piped-query-input').value || '').trim();
+  if (!q) return;
+  const name = prompt('Enter a name for this saved/scheduled query:', 'High-Velocity IPs');
+  if (!name) return;
+
+  try {
+    const res = await fetch('/api/searches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        query: q,
+        is_scheduled: true,
+        schedule_interval_mins: 15,
+        alert_threshold: 1,
+        alert_severity: 'HIGH'
+      })
+    });
+    if (res.ok) {
+      alert(`Saved search "${name}" created and scheduled!`);
+    } else {
+      const d = await res.json();
+      alert('Error: ' + (d.error || 'Failed to save search'));
+    }
+  } catch(e) {
+    alert('Failed to save search: ' + e.message);
+  }
+}
+
+// --- CERT-In 6-Hour Mandatory Incident Report ---
+async function downloadCertInReport(format) {
+  const caseIdEl = $('cd-id');
+  const caseId = caseIdEl ? caseIdEl.textContent.replace('#', '').trim() : 'CASE-0001';
+
+  try {
+    const url = `/api/cases/${caseId}/cert-in-report?format=${format}&org=Enterprise%20SOC`;
+    if (format === 'markdown') {
+      const res = await fetch(url);
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'text/markdown' });
+      const dl = document.createElement('a');
+      dl.href = URL.createObjectURL(blob);
+      dl.download = `CERT-IN-ANNEXURE-I-${caseId}.md`;
+      dl.click();
+    } else {
+      const res = await fetch(url);
+      const json = await res.json();
+      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+      const dl = document.createElement('a');
+      dl.href = URL.createObjectURL(blob);
+      dl.download = `CERT-IN-REPORT-${caseId}.json`;
+      dl.click();
+    }
+  } catch(err) {
+    alert('Failed to generate CERT-In Report: ' + err.message);
+  }
+}
+
+// --- Audit Trail, Storage Integrity & Retention Management ---
+async function loadAuditAndCompliance() {
+  loadAuditLogs();
+  loadRetentionStatus();
+  loadUsersList();
+}
+
+async function loadAuditLogs() {
+  const tbody = $('audit-logs-tbody');
+  if (!tbody) return;
+  try {
+    const res = await fetch('/api/audit?limit=150');
+    if (!res.ok) return;
+    const d = await res.json();
+    cachedAuditLogs = d.audit_logs || [];
+    renderAuditLogsTable(cachedAuditLogs);
+    const countEl = $('audit-total-count');
+    if (countEl) countEl.textContent = cachedAuditLogs.length;
+  } catch(e) {}
+}
+
+function renderAuditLogsTable(logs) {
+  const tbody = $('audit-logs-tbody');
+  if (!tbody) return;
+  if (!logs || logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No audit events logged.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = logs.map(l => {
+    const outcomeColor = l.outcome === 'success' ? '#10b981' : (l.outcome === 'failure' ? '#ef4444' : '#f59e0b');
+    return `
+      <tr>
+        <td class="mono" style="font-size:11px;">${fmtTime(l.ts)}</td>
+        <td><b>${esc(l.username)}</b></td>
+        <td><span style="font-size:10px;text-transform:uppercase;font-weight:700;padding:2px 5px;border-radius:4px;background:var(--surface-subtle);">${esc(l.role)}</span></td>
+        <td class="mono" style="color:var(--text-primary);font-size:11px;">${esc(l.action)}</td>
+        <td><span style="color:var(--text-tertiary);">${esc(l.resource_type)}</span> ${esc(l.resource_id || '')}</td>
+        <td style="color:var(--text-secondary);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(l.details)}">${esc(l.details || '-')}</td>
+        <td><b style="color:${outcomeColor};font-size:11px;">${esc(l.outcome).toUpperCase()}</b></td>
+        <td class="mono" style="font-size:11px;">${esc(l.ip || '127.0.0.1')}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterAuditTable() {
+  const uFilter = ($('audit-filter-user').value || '').toLowerCase();
+  const aFilter = ($('audit-filter-action').value || '').toLowerCase();
+  const filtered = cachedAuditLogs.filter(l => {
+    const matchU = !uFilter || (l.username || '').toLowerCase().includes(uFilter);
+    const matchA = !aFilter || (l.action || '').toLowerCase().includes(aFilter);
+    return matchU && matchA;
+  });
+  renderAuditLogsTable(filtered);
+}
+
+async function verifyHashChainIntegrity() {
+  const statusEl = $('audit-hashchain-status');
+  if (statusEl) statusEl.textContent = 'Verifying...';
+  try {
+    const res = await fetch('/api/storage/verify-integrity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await res.json();
+    if (d.valid) {
+      if (statusEl) {
+        statusEl.textContent = 'Chain Intact (SHA-256)';
+        statusEl.style.color = 'var(--ok)';
+      }
+      alert(`Cryptographic Integrity Verified!\nTotal events in hash-chain: ${d.total_events}\nHead hash: ${d.head_hash}\nTamper Status: UNTOUCHED`);
+    } else {
+      if (statusEl) {
+        statusEl.textContent = 'TAMPER DETECTED!';
+        statusEl.style.color = 'var(--crit)';
+      }
+      alert(`WARNING: Cryptographic Hash Chain Mismatch!\nIntegrity broken at event index ${d.broken_index || 0}`);
+    }
+  } catch(err) {
+    alert('Integrity check failed: ' + err.message);
+  }
+}
+
+async function loadRetentionStatus() {
+  try {
+    const res = await fetch('/api/retention/status');
+    if (!res.ok) return;
+    const d = await res.json();
+    const retEl = $('audit-retention-status');
+    const arcEl = $('audit-archive-count');
+    if (retEl) retEl.textContent = `${d.cert_in_retention_days || 180} Days (Compliant)`;
+    if (arcEl) arcEl.textContent = `${d.archives_count || 0} archives`;
+  } catch(e) {}
+}
+
+async function runColdArchive() {
+  try {
+    const res = await fetch('/api/retention/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await res.json();
+    alert(`Cold log compression pass complete.\nArchived: ${d.archived_events_count} events\nCompressed archive: ${d.archive_file || 'None (no events older than threshold)'}`);
+    loadRetentionStatus();
+  } catch(err) {
+    alert('Archive failed: ' + err.message);
+  }
+}
+
+async function runRetentionBackup() {
+  try {
+    const res = await fetch('/api/retention/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await res.json();
+    alert(`Full system backup manifest generated!\nPath: ${d.backup_path}\nSHA-256 Checksum: ${d.sha256}`);
+  } catch(err) {
+    alert('Backup failed: ' + err.message);
+  }
+}
+
+// --- RBAC Users Management ---
+async function loadUsersList() {
+  const tbody = $('users-tbody');
+  if (!tbody) return;
+  try {
+    const res = await fetch('/api/users');
+    if (!res.ok) return;
+    const d = await res.json();
+    const users = d.users || [];
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><b>${esc(u.username)}</b></td>
+        <td><span style="font-size:10px;text-transform:uppercase;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--surface-subtle);">${esc(u.role)}</span></td>
+        <td style="font-size:11px;color:var(--text-secondary);">${esc((u.permissions || []).join(', '))}</td>
+        <td class="mono" style="font-size:11px;">${fmtTime(u.created_at)}</td>
+        <td class="mono" style="font-size:11px;">${u.last_login ? fmtTime(u.last_login) : 'Never'}</td>
+        <td>
+          ${u.username !== 'admin' ? `<button class="btn-sm" style="color:var(--crit);padding:2px 6px;" onclick="deleteUserAccount('${esc(u.username)}')">Delete</button>` : '<span style="color:var(--text-tertiary);font-size:10.5px;">Permanent</span>'}
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
+
+function toggleNewUserForm() {
+  const form = $('new-user-form');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitCreateUser() {
+  const u = ($('nu-username').value || '').trim();
+  const p = $('nu-password').value;
+  const r = $('nu-role').value;
+  if (!u || !p) {
+    alert('Please enter username and password');
+    return;
+  }
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p, role: r })
+    });
+    if (res.ok) {
+      alert(`User "${u}" created successfully!`);
+      toggleNewUserForm();
+      loadUsersList();
+    } else {
+      const d = await res.json();
+      alert('Error: ' + (d.error || 'Failed to create user'));
+    }
+  } catch(err) {
+    alert('Failed: ' + err.message);
+  }
+}
+
+async function deleteUserAccount(username) {
+  if (!confirm(`Delete user account "${username}"?`)) return;
+  try {
+    const res = await fetch(`/api/users/${username}`, { method: 'DELETE' });
+    if (res.ok) {
+      loadUsersList();
+    } else {
+      const d = await res.json();
+      alert('Error: ' + (d.error || 'Failed to delete user'));
+    }
+  } catch(err) {
+    alert('Failed: ' + err.message);
+  }
+}
+
 initSidebarMode();
 initActiveTab();
+checkCurrentUser();
 fetchState();
 loadCustomRules();
 loadRuleTemplates();
+pollFleetTelemetry();
 setInterval(fetchState, 3000);
+setInterval(pollFleetTelemetry, 5000);
+</script>
+
+<!-- Modal: Authentication / Login -->
+<div class="modal-overlay" id="modal-auth-login" style="display:none;" onclick="if(event.target===this)closeAuthModal()">
+  <div class="modal-content" style="max-width:400px;width:90%;">
+    <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3"/></svg>
+      <h3 style="margin:0;font-size:15px;color:var(--text-primary);">Kavalan SOC Authentication</h3>
+    </div>
+    <p style="font-size:11.5px;color:var(--text-secondary);margin:0 0 14px;">
+      Authenticate with your role-based account credentials. Default roles:
+      <code>admin</code>, <code>engineer</code>, <code>analyst</code>.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">Username</label>
+        <input type="text" id="auth-username" placeholder="e.g. admin" style="width:100%;font-size:12.5px;padding:6px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">Password</label>
+        <input type="password" id="auth-password" placeholder="••••••••••••" style="width:100%;font-size:12.5px;padding:6px 10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);" onkeydown="if(event.key==='Enter')loginUser()">
+      </div>
+    </div>
+    <div id="auth-error-msg" style="display:none;color:var(--crit);font-size:11.5px;margin-bottom:10px;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button class="btn-sm" onclick="logoutUser()" style="color:var(--text-tertiary);">Sign Out</button>
+      <button class="btn-sm primary" onclick="loginUser()" style="padding:6px 16px;">Sign In</button>
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>

@@ -835,6 +835,166 @@ def create_dashboard_app(backend: DashboardBackend) -> FastAPI:
         media_type = "text/x-python" if safe_file.endswith(".py") else "application/json"
         return PlainTextResponse(target.read_text(encoding="utf-8"), media_type=media_type)
 
+    # ------------------------------------------------------------- Phase 1 SOC Proxy Routes
+
+    # --- Authentication & Users ---
+    @app.post("/api/auth/login")
+    async def login_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/auth/login", body))
+
+    @app.get("/api/auth/me")
+    async def get_auth_me_proxy(request: Request):
+        auth_h = request.headers.get("Authorization")
+        req = urllib.request.Request(f"{backend.manager_url}/api/auth/me")
+        if auth_h:
+            req.add_header("Authorization", auth_h)
+        try:
+            with urllib.request.urlopen(req, timeout=3.0) as resp:
+                return JSONResponse(content=json.loads(resp.read().decode("utf-8")))
+        except Exception:
+            return JSONResponse(content={"username": "admin", "role": "admin", "permissions": ["all"]})
+
+    @app.post("/api/auth/logout")
+    async def logout_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/auth/logout", body))
+
+    @app.get("/api/users")
+    async def list_users_proxy():
+        return JSONResponse(content=backend.get_manager("/api/users"))
+
+    @app.post("/api/users")
+    async def create_user_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/users", body))
+
+    @app.delete("/api/users/{username}")
+    async def delete_user_proxy(username: str):
+        return JSONResponse(content=backend.delete_manager(f"/api/users/{username}"))
+
+    # --- Audit Trail ---
+    @app.get("/api/audit")
+    async def list_audit_proxy(request: Request):
+        query = str(request.query_params)
+        path = "/api/audit" + (f"?{query}" if query else "")
+        return JSONResponse(content=backend.get_manager(path))
+
+    @app.post("/api/audit")
+    async def record_audit_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/audit", body))
+
+    # --- Key Rotation & Fleet Telemetry ---
+    @app.post("/api/agents/{agent_id}/rotate-key")
+    async def rotate_agent_key_proxy(agent_id: str):
+        return JSONResponse(content=backend.post_manager(f"/api/agents/{agent_id}/rotate-key", {}))
+
+    @app.get("/api/fleet/telemetry")
+    async def fleet_telemetry_proxy():
+        return JSONResponse(content=backend.get_manager("/api/fleet/telemetry"))
+
+    # --- Searches (Saved & Piped) ---
+    @app.get("/api/searches")
+    async def list_saved_searches_proxy():
+        return JSONResponse(content=backend.get_manager("/api/searches"))
+
+    @app.post("/api/searches")
+    async def create_saved_search_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/searches", body))
+
+    @app.delete("/api/searches/{search_id}")
+    async def delete_saved_search_proxy(search_id: str):
+        return JSONResponse(content=backend.delete_manager(f"/api/searches/{search_id}"))
+
+    @app.post("/api/searches/{search_id}/run")
+    async def run_saved_search_proxy(search_id: str):
+        return JSONResponse(content=backend.post_manager(f"/api/searches/{search_id}/run", {}))
+
+    @app.post("/api/search/piped")
+    async def run_piped_search_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_indexer("/api/search/piped", body))
+
+    # --- Retention & Tamper Evidence ---
+    @app.post("/api/storage/verify-integrity")
+    async def verify_storage_integrity_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_indexer("/api/storage/verify-integrity", body))
+
+    @app.get("/api/retention/status")
+    async def get_retention_status_proxy():
+        return JSONResponse(content=backend.get_indexer("/api/retention/status"))
+
+    @app.post("/api/retention/archive")
+    async def run_retention_archive_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_indexer("/api/retention/archive", body))
+
+    @app.post("/api/retention/backup")
+    async def run_retention_backup_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_indexer("/api/retention/backup", body))
+
+    # --- CERT-In Incident Report ---
+    @app.get("/api/cases/{case_id}/cert-in-report")
+    async def get_cert_in_report_proxy(case_id: str, request: Request):
+        query = str(request.query_params)
+        path = f"/api/cases/{case_id}/cert-in-report" + (f"?{query}" if query else "")
+        fmt = request.query_params.get("format", "json").lower()
+        if fmt in ("markdown", "md"):
+            try:
+                with urllib.request.urlopen(f"{backend.manager_url}{path}", timeout=5.0) as resp:
+                    return PlainTextResponse(resp.read().decode("utf-8"), media_type="text/markdown")
+            except Exception as e:
+                return PlainTextResponse(f"Error generating report: {e}", status_code=500)
+        return JSONResponse(content=backend.get_manager(path))
+
+    # --- Schema Mapping Export & Generic Ingestion ---
+    @app.post("/api/events/export")
+    async def export_events_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/events/export", body))
+
+    @app.post("/api/ingest")
+    async def ingest_generic_proxy(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        return JSONResponse(content=backend.post_manager("/api/ingest", body))
+
     return app
 
 

@@ -337,7 +337,8 @@ class DecoderPipeline:
     """Hierarchical sequential decoder matching engine."""
 
     def __init__(self):
-        self.decoders: List[BaseDecoder] = [
+        # Base decoders
+        self.decoders: List[Any] = [
             FimDecoder(),
             SyscollectorDecoder(),
             JsonLogDecoder(),
@@ -345,6 +346,24 @@ class DecoderPipeline:
             SshdAuthDecoder(),
             SyslogGenericDecoder(),
         ]
+        # Dynamically load enterprise decoders (Windows, CloudTrail, Entra, DNS, K8s)
+        try:
+            from .enterprise_decoders import (
+                WindowsSecurityEventDecoder,
+                CloudTrailDecoder,
+                MicrosoftEntraDecoder,
+                DnsLogDecoder,
+                KubernetesAuditDecoder
+            )
+            self.decoders.extend([
+                WindowsSecurityEventDecoder(),
+                CloudTrailDecoder(),
+                MicrosoftEntraDecoder(),
+                DnsLogDecoder(),
+                KubernetesAuditDecoder()
+            ])
+        except Exception:
+            pass
 
     def decode_line(self, line: str, host: str = "unknown", year: Optional[int] = None) -> Optional[CEMEvent]:
         if not line or not line.strip():

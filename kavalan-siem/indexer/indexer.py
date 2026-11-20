@@ -26,13 +26,25 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+CURRENT_DIR = Path(__file__).resolve().parent
+BASE_DIR = CURRENT_DIR.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 import uvicorn
+
+try:
+    from piped_query import PipedQueryEngine
+    from tamper_proof import TamperProofChain
+    from retention_manager import RetentionManager
+except ImportError:
+    from indexer.piped_query import PipedQueryEngine
+    from indexer.tamper_proof import TamperProofChain
+    from indexer.retention_manager import RetentionManager
 
 
 import threading
@@ -117,6 +129,9 @@ def init_db(db_path: str) -> None:
 class IndexerService:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.piped_engine = PipedQueryEngine(lambda: get_db(self.db_path))
+        self.tamper_chain = TamperProofChain(lambda: get_db(self.db_path))
+        self.retention_mgr = RetentionManager(self.db_path)
         try:
             from threat_intel import ThreatIntelEngine
             self.threat_intel = ThreatIntelEngine(db_path=self.db_path)
@@ -146,10 +161,20 @@ class IndexerService:
         if rows:
             con = get_db(self.db_path)
             with con:
-                con.executemany("""
+                cursor = con.cursor()
+                cursor.executemany("""
                     INSERT INTO events_index (timestamp, agent_id, host, source_ip, log_type, action, target, outcome, status, user, tactics_json, raw, meta_json)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, rows)
+                # Compute starting id for hash chaining
+                last_id = cursor.lastrowid
+                if last_id is not None:
+                    first_id = last_id - len(rows) + 1
+                    chained_items = [(first_id + i, d) for i, d in enumerate(docs)]
+                    try:
+                        self.tamper_chain.append_batch(chained_items)
+                    except Exception:
+                        pass
         return len(rows)
 
     def index_alerts(self, alerts: List[Dict[str, Any]]) -> int:
@@ -819,6 +844,42 @@ def create_indexer_app(indexer: IndexerService) -> FastAPI:
     async def search_events_api(request: Request):
         query = await request.json()
         return indexer.search_events(query)
+
+    @app.post("/api/search/piped")
+    async def search_piped_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        query_str = body.get("query", "*")
+        limit = body.get("limit", 100)
+        return indexer.piped_engine.execute(query_str, default_limit=limit)
+
+    @app.post("/api/storage/verify-integrity")
+    async def verify_integrity_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        limit = body.get("limit", 5000)
+        return indexer.tamper_chain.verify_integrity(limit=limit)
+
+    @app.get("/api/retention/status")
+    async def retention_status_api():
+        return indexer.retention_mgr.get_retention_status()
+
+    @app.post("/api/retention/archive")
+    async def retention_archive_api():
+        return indexer.retention_mgr.archive_cold_events()
+
+    @app.post("/api/retention/backup")
+    async def retention_backup_api(request: Request):
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        out_dir = body.get("out_dir")
+        return indexer.retention_mgr.create_full_backup(out_dir=out_dir)
 
     @app.post("/api/search/alerts")
     async def search_alerts_api(request: Request):
