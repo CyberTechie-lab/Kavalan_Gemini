@@ -6,8 +6,7 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 
-# Databases & Runtime State (DO NOT COMMIT RUNTIME DATABASES)
-*.db
+# Databases & Runtime State
 *.db-shm
 *.db-wal
 *.log
@@ -23,8 +22,16 @@ test_proc.log
 node_modules/
 dist/
 
-# Runtime data & generated certs
-data/
+# Runtime data (track persistent SQLite DBs, ignore transient certs, archives, logs)
+data/*
+!data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Subdirectory DBs & runs
+kavalan-siem/*.db*
+kavalan-ml/*.db*
+strix_runs/
 
 # Local IDE / Agents cache
 .agents/
