@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AGENT_PY_STUB, INSTALL_SH_SCRIPT, SAMPLE_AGENT_CONF } from './src/agentAssets.js';
@@ -109,10 +110,23 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 app.head('/favicon.ico', (_req: Request, res: Response) => {
+  res.status(200).type('image/x-icon').end();
+});
+
+app.head('/favicon.svg', (_req: Request, res: Response) => {
   res.status(200).type('image/svg+xml').end();
 });
 
 app.get('/favicon.ico', (_req: Request, res: Response) => {
+  const icoPath = path.join(PUBLIC_DIR, 'favicon.ico');
+  if (fs.existsSync(icoPath)) {
+    res.type('image/x-icon').sendFile(icoPath);
+  } else {
+    res.type('image/svg+xml').sendFile(path.join(PUBLIC_DIR, 'kavalan_logo_mark.svg'));
+  }
+});
+
+app.get('/favicon.svg', (_req: Request, res: Response) => {
   res.type('image/svg+xml').sendFile(path.join(PUBLIC_DIR, 'kavalan_logo_mark.svg'));
 });
 
