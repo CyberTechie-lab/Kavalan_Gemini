@@ -762,6 +762,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 360px;
   }
   .crumb-root {
     color: var(--text-tertiary);
@@ -912,6 +914,17 @@
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.5);
     color: #f87171;
+  }
+  .btn-header-signin {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .btn-header-signin:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
   }
   .shortcut-k-badge {
     display: inline-flex;
@@ -1251,21 +1264,27 @@
     pointer-events: none;
   }
 
-  @media (max-width: 1200px) {
+  @media (max-width: 1360px) {
     .top-header-center { display: none !important; }
   }
-  @media (max-width: 960px) {
-    .top-header .live-pill { display: none !important; }
-  }
-  @media (max-width: 768px) {
-    .top-header { padding: 0 12px; gap: 8px; }
-    .breadcrumb-trail .crumb-root,
-    .breadcrumb-trail .crumb-sep,
-    .breadcrumb-trail .crumb-env-tag { display: none; }
+  @media (max-width: 1100px) {
     .btn-redteam span,
     #btn-shortcuts .btn-tool-label { display: none; }
-    .user-profile-btn { padding: 2px 6px 2px 2px; }
+    .live-pill { padding: 0 8px; font-size: 11px; }
+    .top-header { padding: 0 16px; gap: 8px; }
+  }
+  @media (max-width: 860px) {
+    .top-header .live-pill { display: none !important; }
+    .breadcrumb-trail .crumb-root,
+    .breadcrumb-trail .crumb-sep { display: none; }
+  }
+  @media (max-width: 680px) {
+    .top-header { padding: 0 10px; gap: 6px; }
+    #btn-tz-toggle,
+    #btn-shortcuts { display: none !important; }
     .user-meta-compact { display: none; }
+    .user-profile-btn { padding: 2px 6px 2px 2px; }
+    .breadcrumb-trail .crumb-env-tag { display: none; }
   }
   @media (max-width: 1024px) {
     body.sidebar-autohide .sidebar,
@@ -2713,7 +2732,7 @@
         </button>
         <div class="breadcrumb-trail">
           <span class="crumb-root">
-            <svg class="crumb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <img src="/favicon.svg" width="16" height="16" style="vertical-align:middle;display:inline-block;border-radius:3px;" alt="Kavalan">
             <span>Kavalan Sentinel</span>
           </span>
           <span class="crumb-sep">/</span>
@@ -2839,6 +2858,12 @@
         <button class="btn-header-tool btn-header-logout" id="btn-quick-logout" onclick="performLogout()" title="Logout from Kavalan SOC" style="display:none;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           <span>Logout</span>
+        </button>
+
+        <!-- Direct Quick Sign In Header Button (shown when logged out) -->
+        <button class="btn-header-tool btn-header-signin" id="btn-header-signin" onclick="showLoginOverlay(true)" title="Sign in to Kavalan SOC">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span>Sign In</span>
         </button>
       </div>
     </header>
@@ -9690,13 +9715,16 @@ function updateUserHeaderUI(user) {
   const sbBtn = $('sidebar-logout-btn');
   const sbLbl = $('sidebar-logout-label');
   const qkBtn = $('btn-quick-logout');
+  const signinBtn = $('btn-header-signin');
   if (!user) {
     if (pill) pill.style.display = 'none';
     if (sbBtn) sbBtn.style.display = 'none';
     if (qkBtn) qkBtn.style.display = 'none';
+    if (signinBtn) signinBtn.style.display = 'inline-flex';
     closeUserProfileMenu();
     return;
   }
+  if (signinBtn) signinBtn.style.display = 'none';
   if (pill) pill.style.display = 'inline-flex';
   if (sbBtn) sbBtn.style.display = 'flex';
   if (qkBtn) qkBtn.style.display = 'inline-flex';
