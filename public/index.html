@@ -900,6 +900,17 @@
     border-color: var(--redteam-hover-border);
     color: var(--redteam-color);
   }
+  .btn-header-logout {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.28);
+    color: #ef4444;
+    font-weight: 600;
+  }
+  .btn-header-logout:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #f87171;
+  }
   .shortcut-k-badge {
     display: inline-flex;
     align-items: center;
@@ -2821,6 +2832,12 @@
             </button>
           </div>
         </div>
+
+        <!-- Direct Quick Logout Header Button -->
+        <button class="btn-header-tool btn-header-logout" id="btn-quick-logout" onclick="performLogout()" title="Logout from Kavalan SOC" style="display:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
       </div>
     </header>
 
@@ -9670,14 +9687,17 @@ function updateUserHeaderUI(user) {
   const pill = $('header-user-pill');
   const sbBtn = $('sidebar-logout-btn');
   const sbLbl = $('sidebar-logout-label');
+  const qkBtn = $('btn-quick-logout');
   if (!user) {
     if (pill) pill.style.display = 'none';
     if (sbBtn) sbBtn.style.display = 'none';
+    if (qkBtn) qkBtn.style.display = 'none';
     closeUserProfileMenu();
     return;
   }
   if (pill) pill.style.display = 'inline-flex';
   if (sbBtn) sbBtn.style.display = 'flex';
+  if (qkBtn) qkBtn.style.display = 'inline-flex';
   if (sbLbl) sbLbl.textContent = `Logout (${user.username})`;
 
   const roleStr = String(user.role || 'analyst').toLowerCase();
