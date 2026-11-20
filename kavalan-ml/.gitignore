@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-data/
-dist/
-*.log
-truth.json
-alerts*.json
-kavalan.db

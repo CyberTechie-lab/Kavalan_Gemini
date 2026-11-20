@@ -1,0 +1,8 @@
+{
+  "name": "Kavalan SIEM · 4-Tier Enterprise SOC Console",
+  "description": "4-Tier Enterprise SIEM, AI-Agent Behavioral Attribution, MITRE ATT&CK Correlation, and Autonomous SOAR Defense Platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
