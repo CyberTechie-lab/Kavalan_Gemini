@@ -9733,6 +9733,42 @@ function updateUserHeaderUI(user) {
   applyRbacUiPermissions(user.role);
 }
 
+function showLoginOverlay(show) {
+  const overlay = $('login-overlay');
+  if (overlay) {
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+  if (show) {
+    const uInput = $('login-username');
+    if (uInput) setTimeout(() => uInput.focus(), 60);
+  }
+}
+
+function quickFillLogin(username, password) {
+  const u = $('login-username');
+  const p = $('login-password');
+  if (u) u.value = username;
+  if (p) p.value = password;
+  const err = $('login-error');
+  if (err) err.style.display = 'none';
+  performLogin();
+}
+
+function applyRbacUiPermissions(role) {
+  const currentRole = String(role || 'analyst').toLowerCase();
+  document.querySelectorAll('[data-rbac]').forEach((el) => {
+    const attr = el.getAttribute('data-rbac') || '';
+    const allowed = attr.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (!allowed.length) return;
+    const isAllowed = allowed.includes(currentRole);
+    if (isAllowed) {
+      el.removeAttribute('data-rbac-locked');
+    } else {
+      el.setAttribute('data-rbac-locked', 'true');
+    }
+  });
+}
+
 async function performLogin(e) {
   if (e) e.preventDefault();
   const u = $('login-username').value.trim();
